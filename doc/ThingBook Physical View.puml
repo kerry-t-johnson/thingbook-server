@@ -1,0 +1,16 @@
+@startuml "ThingBook Physical View"
+rectangle PresentationTier {
+    node AngularBrowser
+}
+
+rectangle BackendTier {
+    node NodeJS
+}
+
+rectangle DatabaseTier {
+    node MongoDB
+}
+
+AngularBrowser --> NodeJS
+NodeJS --> MongoDB
+@enduml

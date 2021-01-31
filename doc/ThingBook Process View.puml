@@ -1,0 +1,11 @@
+@startuml "ThingBook Process View"
+rectangle PresentationTier {
+    component UserInterface
+}
+
+rectangle BackendTier {
+    component HTTPServer
+}
+
+UserInterface --> HTTPServer
+@enduml

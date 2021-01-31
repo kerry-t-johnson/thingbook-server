@@ -1,0 +1,16 @@
+@startuml "ThingBook Backend Development View"
+
+
+rectangle BackendTier {
+    artifact APILayer
+    artifact BusinessLogicLayer
+    artifact ServiceLayer
+    artifact DomainLayer
+
+    APILayer            --> BusinessLogicLayer
+    BusinessLogicLayer  --> ServiceLayer
+    ServiceLayer        --> DomainLayer
+}
+
+
+@enduml

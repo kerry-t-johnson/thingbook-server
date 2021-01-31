@@ -1,0 +1,15 @@
+@startuml Establish a Data Sharing Agreement
+actor ConsumerOrganization
+actor ProducerOrganization
+
+ConsumerOrganization -> ThingBook: Browse Available Data
+ConsumerOrganization -> ThingBook: Select Data to Subscribe
+ConsumerOrganization -> ThingBook: Accept Data Sharing Criteria
+ConsumerOrganization -> ThingBook: Sign Data Sharing Agreement
+
+group if manualApproval
+    ProducerOrganization -> ThingBook: Sign Data Sharing Agreement
+end
+
+hide footbox
+@enduml

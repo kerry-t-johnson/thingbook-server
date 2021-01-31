@@ -1,0 +1,9 @@
+@startuml "Publish a Composite Datastream"
+actor ProducerOrganization
+actor ConsumerOrganization
+
+ProducerOrganization    -> ThingBook : Observation
+ConsumerOrganization    <- ThingBook : Observation
+
+hide footbox
+@enduml
