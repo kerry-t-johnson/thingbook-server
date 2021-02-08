@@ -1,0 +1,9 @@
+@startuml "Data Sharing Agreement State Diagram"
+hide empty description
+[*] --> Inactive
+Inactive --> Active : mutual agreement
+Expired --> Active : renewed
+Active --> Expired : expired
+Active -> Cancelled : recission
+Cancelled --> [*]
+@enduml

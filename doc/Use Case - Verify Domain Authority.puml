@@ -1,0 +1,19 @@
+@startuml "Verify Domain Authority Sequence Diagram"
+hide footbox
+
+actor "Registered User"
+actor "External Domain"
+participant "ThingBook"
+
+"Registered User" -> ThingBook : Create Organization
+ThingBook -> ThingBook: Generate Token
+note right
+    Token expires
+    after 72hrs
+end note
+"Registered User" <-- ThingBook : token
+"Registered User" -> "External Domain" : add token
+"Registered User" -> ThingBook: Verify Domain
+"External Domain" <- ThingBook
+"External Domain" --> ThingBook
+@enduml
