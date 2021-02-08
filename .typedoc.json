@@ -1,0 +1,8 @@
+{
+    "entryPoints": [
+        "./application.ts",
+        "./models/organization.model.ts"
+    ],
+    "out": "./doc/typedoc",
+    "includeVersion": "true"
+}
