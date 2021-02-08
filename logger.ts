@@ -1,7 +1,9 @@
-import { createLogger, format, transports } from 'winston';
+import { createLogger, format, transports, Logger } from 'winston';
 import { sprintf } from 'sprintf-js';
 
-export function getLogger(name: String) {
+export { Logger };
+
+export function getLogger(name: String): Logger {
     return createLogger({
         level: 'info',
         format: format.combine(
@@ -15,14 +17,14 @@ export function getLogger(name: String) {
         defaultMeta: { service: name },
         transports: [
             new transports.Console({
-                level: 'debug',
+                level: 'silly',
                 format: format.combine(
                     format.timestamp({
                         format: 'YYYY-MM-DD HH:mm:ss'
                     }),
                     format(info => {
                         info.level = sprintf('%-5s', info.level.toUpperCase());
-                        info.service = sprintf('%-15s', info.service);
+                        info.service = sprintf('%-20s', info.service);
                         return info;
                     })(),
                     format.colorize({ all: true }),
