@@ -5,7 +5,7 @@ export { ResourceListOptions };
 
 export interface OrganizationService {
 
-    list: (options: ResourceListOptions) => Promise<OrganizationDocument[]>;
+    list: (options?: ResourceListOptions) => Promise<OrganizationDocument[]>;
     create: (org: OrganizationDocument) => Promise<OrganizationDocument>;
 
 }

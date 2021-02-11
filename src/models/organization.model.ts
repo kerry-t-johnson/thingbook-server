@@ -30,20 +30,23 @@ export interface OrganizationDocument extends Document {
  */
 export const OrganizationSchema = new Schema({
     name: { type: String, required: true },
-
     domainName: { type: String, required: true, unique: true, index: true },
-
     sensorThingsURL: { type: String, required: true }
 }, { timestamps: true });
 
+export interface OrganizationModel extends Model<OrganizationDocument> {
+    all: (options?: ResourceListOptions) => Promise<OrganizationDocument[]>;
+}
 
-OrganizationSchema.statics.all = async function ({ sort_field = 'name', sort_asc = true, offset = 0, limit = 9999 }: ResourceListOptions): Promise<OrganizationDocument[]> {
-    var sort = { [sort_field]: sort_asc ? 'asc' : 'desc' };
+OrganizationSchema.statics.all = async function (options?: ResourceListOptions): Promise<OrganizationDocument[]> {
+    options = options || new ResourceListOptions();
+
     return this.find()
-        .sort(sort)
-        .skip(offset)
-        .limit(limit).exec();
+        .sort(options.asSortCriteria())
+        .skip(options.offset)
+        .limit(options.limit)
+        .exec();
 }
 
 
-export const Organization: Model<OrganizationDocument> = model('Organization', OrganizationSchema);
+export const Organization: OrganizationModel = model<OrganizationDocument, OrganizationModel>('Organization', OrganizationSchema);
