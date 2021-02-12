@@ -9,6 +9,6 @@ RUN npm install --production --silent
 
 # Build
 COPY . .
-RUN npm run tsc
+RUN npm run build
 
-CMD ["./build/app.js"]
+CMD ["./build/src/application.js"]
