@@ -9,6 +9,6 @@ RUN npm install --production --silent
 
 # Build
 COPY . .
-RUN npm run build
+RUN npm run build -- --project tsconfig.production.json
 
-CMD ["./build/src/application.js"]
+CMD ["./dist/application.js"]

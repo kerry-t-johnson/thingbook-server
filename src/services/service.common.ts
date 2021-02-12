@@ -1,4 +1,4 @@
-import { Logger, getLogger } from "../../logger";
+import { Logger, getLogger } from "../utils/logger";
 
 export interface Service {
 

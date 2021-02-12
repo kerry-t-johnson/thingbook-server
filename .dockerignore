@@ -3,9 +3,11 @@
 **/.env
 **/.git
 **/.gitignore
+**/.github
 **/.project
 **/.settings
 **/.toolstarget
+**/.typedoc.json
 **/.vs
 **/.vscode
 **/*.*proj.user
@@ -20,4 +22,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+build
+doc
+test
 README.md

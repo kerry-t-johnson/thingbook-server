@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { Logger, getLogger } from "../../logger";
+import { Logger, getLogger } from "../utils/logger";
 import { validationResult } from 'express-validator';
 import { ThingBookError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";

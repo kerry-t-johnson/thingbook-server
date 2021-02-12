@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import * as utils from './index';
 import { Logger } from "winston";
-import { getLogger } from "../../logger";
+import { getLogger } from "./logger";
 import { ThingBookError } from "./error.utils";
 import { StatusCodes } from 'http-status-codes';
 

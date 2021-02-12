@@ -3,7 +3,7 @@ import { container } from "tsyringe";
 import { UserRoutes } from './user.route';
 import express, { Application as ExpressApplication, Router as ExpressRouter, Request, Response, NextFunction } from 'express';
 import morgan from 'morgan';
-import { getLogger, Logger } from '../../logger';
+import { getLogger, Logger } from '../utils/logger';
 
 
 export class Router {

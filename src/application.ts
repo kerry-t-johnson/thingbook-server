@@ -4,7 +4,7 @@ import express, { Application as ExpressApplication } from 'express';
 import { Router } from './api';
 import { OrganizationServiceImpl } from "./services/organization.service.impl";
 import { User } from "./models/user.model";
-import { Logger, getLogger } from '../logger';
+import { Logger, getLogger } from './utils/logger';
 import { UserServiceImpl } from "./services/user.service.impl";
 import { Organization } from "./models/organization.model";
 import { Configuration } from "./config";
