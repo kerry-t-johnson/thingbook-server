@@ -5,11 +5,7 @@ on: [ push ]
 jobs:
   build:
 
-    runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [15.x]
+    runs-on: ubuntu-20.04
 
     steps:
       - uses: actions/checkout@v2

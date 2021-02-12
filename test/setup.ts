@@ -1,5 +1,5 @@
-import { Configuration } from '../../src/config';
-import { Database } from '../../src/utils/database.utils';
+import { Configuration } from '../src/config';
+import { Database } from '../src/utils/database.utils';
 
 const config: Configuration = new Configuration();
 const db: Database = new Database(config);
