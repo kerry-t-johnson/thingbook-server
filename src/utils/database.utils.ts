@@ -49,11 +49,9 @@ export class Database {
 
         const mongooseOpts = {
             useNewUrlParser: true,
-            autoReconnect: true,
-            reconnectTries: Number.MAX_VALUE,
-            reconnectInterval: 1000,
             keepAlive: true,
-            connectTimeoutMS: 30000
+            connectTimeoutMS: 30000,
+            useUnifiedTopology: true
         };
 
         await mongoose.connect(this.config.databaseURL, mongooseOpts);

@@ -1,0 +1,9 @@
+shenandoah:
+  users:
+    - email: kerry.t.johnson@gmail.com
+      password: password
+  organizations:
+    - name: Shenandoah Grill
+      domainName: shenandoah.com
+      sensorThingsURL: http://localhost:28080
+      
