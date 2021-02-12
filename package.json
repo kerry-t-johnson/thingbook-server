@@ -4,8 +4,8 @@
   "description": "Server application for ThingBook",
   "main": "server.js",
   "scripts": {
-    "dev": "ts-node-dev --notify --respawn --clear --transpile-only --unhandled-rejections=strict --inspect=0.0.0.0:9229 ./src/application.ts",
-    "test": "mocha --exit --timeout 60000 --require ts-node/register ./test/**/*.ts",
+    "dev": "NODE_ENV=dev ts-node-dev --notify --respawn --clear --transpile-only --unhandled-rejections=strict --inspect=0.0.0.0:9229 ./src/application.ts",
+    "test": "NODE_ENV=test mocha --exit --timeout 60000 --slow 8000 --require ts-node/register ./test/*.ts ./test/**/*.ts",
     "build": "tsc",
     "doc": "typedoc --watch --options ./.typedoc.json"
   },

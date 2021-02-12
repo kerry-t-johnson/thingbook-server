@@ -1,34 +1,40 @@
-import { createLogger, format, transports, Logger } from 'winston';
+import * as winston from 'winston';
+import { container } from "tsyringe";
+import { Logger } from 'winston';
 import { sprintf } from 'sprintf-js';
+import { Configuration } from './src/config';
 
 export { Logger };
 
+
 export function getLogger(name: String): Logger {
-    return createLogger({
-        level: 'info',
-        format: format.combine(
-            format.timestamp({
+    const config: Configuration = container.resolve("Configuration");
+
+    return winston.createLogger({
+        level: config.logLevel,
+        format: winston.format.combine(
+            winston.format.timestamp({
                 format: 'YYYY-MM-DD HH:mm:ss'
             }),
-            format.errors({ stack: true }),
-            format.splat(),
-            format.json()
+            winston.format.errors({ stack: true }),
+            winston.format.splat(),
+            winston.format.json()
         ),
         defaultMeta: { service: name },
         transports: [
-            new transports.Console({
-                level: 'silly',
-                format: format.combine(
-                    format.timestamp({
+            new winston.transports.Console({
+                level: config.logLevel,
+                format: winston.format.combine(
+                    winston.format.timestamp({
                         format: 'YYYY-MM-DD HH:mm:ss'
                     }),
-                    format(info => {
+                    winston.format(info => {
                         info.level = sprintf('%-5s', info.level.toUpperCase());
                         info.service = sprintf('%-20s', info.service);
                         return info;
                     })(),
-                    format.colorize({ all: true }),
-                    format.printf((info) => {
+                    winston.format.colorize({ all: true }),
+                    winston.format.printf((info) => {
                         return `${info.timestamp} [${info.level}] ${info.service} ${info.message}`;
                     }),
                 )

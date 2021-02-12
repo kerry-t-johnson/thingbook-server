@@ -51,7 +51,8 @@ export class Database {
             useNewUrlParser: true,
             keepAlive: true,
             connectTimeoutMS: 30000,
-            useUnifiedTopology: true
+            useUnifiedTopology: true,
+            useCreateIndex: true,
         };
 
         await mongoose.connect(this.config.databaseURL, mongooseOpts);
@@ -76,7 +77,6 @@ export class Database {
     }
 
     public static createException(entityType: string, error: any) {
-        console.log(error);
         if (error?.code) {
             return Database.createMongoException(entityType, error);
         }
