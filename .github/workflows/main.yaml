@@ -28,8 +28,7 @@ jobs:
         id: docker_meta
         uses: crazy-max/ghaction-docker-meta@v1
         with:
-          images: env.REPOSITORY_NAME/env.APPLICATION_NAME
-
+          images: ${{ env.REPOSITORY_NAME }}/${{ env.APPLICATION_NAME }}
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -49,7 +48,7 @@ jobs:
         with:
           push: true
           labels: ${{ steps.docker_meta.outputs.labels }}
-          tags: env.REPOSITORY_NAME/env.APPLICATION_NAME:latest
-          
+          tags: ${{ steps.docker_meta.outputs.tags }}
+
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
