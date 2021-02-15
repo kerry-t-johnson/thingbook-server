@@ -1,8 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { Logger, getLogger } from "../utils/logger";
-import { validationResult } from 'express-validator';
 import { ThingBookError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";
+import { startSession } from "../utils/database.utils";
+import { ClientSession } from "mongoose";
+import { sha256 } from "../utils";
 
 export class ExpressValidationError extends ThingBookError {
     constructor(error: any) {
@@ -19,35 +21,66 @@ export abstract class AbstractRoute {
         this.logger = getLogger(routeName);
     }
 
-    validate(req: Request) {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            throw new ExpressValidationError(errors);
+    protected setEtag(entity: any, res: Response) {
+        res.set({ 'ETag': sha256(entity.updatedAt.toLocaleString()) });
+    }
+
+    protected validateEtag(etag: string | undefined, entity: any) {
+        if (!etag) {
+            throw new ThingBookError(StatusCodes.UNPROCESSABLE_ENTITY, `This action requires a valid ETag`);
+        }
+
+        if (etag != sha256(entity.updatedAt.toLocaleString())) {
+            throw new ThingBookError(StatusCodes.CONFLICT, `Entity ${entity._id} has been modified by another`);
         }
     }
 
-    wrap(func: Function) {
-        return this.process.bind(this, func.bind(this));
+    validate(req: Request) {
+        // validation TBD
     }
 
-    process(func: Function, req: Request, res: Response) {
-        try {
-            this.validate(req);
+    wrapRoute(func: Function) {
+        return this.processRoute.bind(this, func.bind(this));
+    }
 
-            func(req, res);
+    wrapParam(func: Function) {
+        return this.processParam.bind(this, func.bind(this));
+    }
+
+    processRoute(func: Function, req: Request, res: Response) {
+        this.validate(req);
+        func(req, res);
+    }
+
+    async processParam(func: Function, req: Request, res: Response, next: NextFunction, id: string | number) {
+        try {
+            await func(req, res, id);
+            next();
         }
         catch (error) {
-            this.onError(error, res);
+            next(error);
         }
     }
 
-    onError(error: any, res: Response) {
-        if (error?.httpCode) {
-            res.status(error.httpCode).json({ msg: error.message });
+    /**
+     * Using morgan and winston, logs HTTP errors
+     * 
+     * @param err error details
+     * @param req request details
+     * @param res response details
+     * @param next next method in the middelware
+     */
+    protected logError(error: any, req: Request, res: Response, next: NextFunction) {
+        const errorCode = error?.statusCode || 500;
+        const errorMsg = error?.message || error;
+
+        this.logger.error(errorMsg);
+        if (error?.stack) {
+            this.logger.error(error.stack);
         }
-        else {
-            res.status(500).json({ msg: error });
-        }
+
+        res.status(errorCode).json({ msg: errorMsg });
     }
+
 }
 

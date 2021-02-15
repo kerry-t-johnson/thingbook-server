@@ -19,7 +19,7 @@ export class UserServiceImpl extends AbstractService implements UserService {
         return this.userModel.all(options);
     }
 
-    public async findUser(idOrEmail: string): Promise<UserDocument> {
+    public async findUser(idOrEmail: string | number): Promise<UserDocument> {
         utils.assertIsDefined(this.userModel);
         return await this.userModel.findByEmailOrId(idOrEmail);
     }

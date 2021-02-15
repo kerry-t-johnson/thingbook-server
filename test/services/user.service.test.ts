@@ -37,8 +37,8 @@ describe('UserService', function () {
         // Instead, return the promise with an associated catch
         return uut.create(testUser, faker.internet.password())
             .catch(function (error) {
-                expect(error).to.have.key('httpCode');
-                expect(error.httpCode).to.equal(409);
+                expect(error).to.have.key('statusCode');
+                expect(error.statusCode).to.equal(409);
             })
     });
     it('Will not create an incomplete User (missing email)', async function () {
@@ -50,8 +50,8 @@ describe('UserService', function () {
 
         return uut.create(incompleteTestUser, faker.internet.password())
             .catch(function (error) {
-                expect(error).to.have.key('httpCode');
-                expect(error.httpCode).to.equal(422);
+                expect(error).to.have.key('statusCode');
+                expect(error.statusCode).to.equal(422);
             })
 
     });

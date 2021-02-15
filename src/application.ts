@@ -9,6 +9,7 @@ import { UserServiceImpl } from "./services/user.service.impl";
 import { Organization } from "./models/organization.model";
 import { Configuration } from "./config";
 import { Database } from "./utils/database.utils";
+import { OrganizationManagerImpl } from "./business/organization.manager.impl";
 
 /**
  * Entrypoint for the application.
@@ -61,6 +62,7 @@ container.register("Configuration", { useValue: config });
 container.register("Database", { useClass: Database });
 container.register("OrganizationModel", { useValue: Organization });
 container.register("OrganizationService", { useClass: OrganizationServiceImpl });
+container.register("OrganizationManager", {useClass: OrganizationManagerImpl});
 container.register("UserModel", { useValue: User });
 container.register("UserService", { useClass: UserServiceImpl });
 

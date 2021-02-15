@@ -8,29 +8,35 @@ import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
 import { Configuration } from '../config';
 import * as utils from '../utils';
-import { query } from 'express-validator';
 import { AbstractRoute } from './route.common';
 import { EntityNotFoundError } from '../utils/error.utils';
+import { OrganizationManager } from '../business/organization.manager';
+import { OrganizationDocument } from '../models/organization.model';
+import { ClientSession } from 'mongoose';
 
 @injectable()
 export class UserRoutes extends AbstractRoute {
 
     private router: Router = Router();
 
-    public constructor(@inject("UserService") private userSvc?: UserService,
+    public constructor(
+        @inject("UserService") private userSvc?: UserService,
+        @inject("OrganizationManager") private orgMgr?: OrganizationManager,
         @inject("Configuration") private config?: Configuration) {
         super("User");
 
-        this.router.param('user', this.populateUserParam.bind(this));
-        this.router.get('/', [
-            query('email')
-                .trim()
-                .isLength({ min: 3 }).withMessage('Email search criteria too short (must be at least 3 characters)'),
-        ], this.wrap(this.listUsers));
-        this.router.get('/:user', this.wrap(this.findUser));
-        this.router.post('/login', passport.authenticate('local'), this.wrap(this.login));
-        this.router.get('/logout', this.wrap(this.logout));
-        this.router.post('/register', this.wrap(this.register));
+        // Parameters
+        this.router.param('user', this.wrapParam(this.populateUserParam));
+
+        // User Management
+        this.router.get('/', this.wrapRoute(this.get));
+        this.router.get('/:user', this.wrapRoute(this.getUser));
+        this.router.post('/login', passport.authenticate('local'), this.wrapRoute(this.login));
+        this.router.get('/logout', this.wrapRoute(this.logout));
+        this.router.post('/register', this.wrapRoute(this.register));
+
+        // Organization Management
+        this.router.post('/:user/organization', this.wrapRoute(this.postUserOrganization));
     }
 
     public initialize(app: ExpressApplication, parent: Router) {
@@ -60,15 +66,17 @@ export class UserRoutes extends AbstractRoute {
         parent.use('/user', this.router);
     }
 
-    private populateUserParam(req: Request, res: Response, next: NextFunction, id: string) {
-        this.userSvc?.findUser(id)
-            .then(function (user: UserDocument) {
-                req.userParam = user;
-                next();
-            });
+    private async populateUserParam(req: Request, res: Response, id: string | number) {
+        utils.assertIsDefined(this.userSvc);
+
+        req.userParam = await this.userSvc.findUser(id);
+
+        if (!req.userParam) {
+            throw new EntityNotFoundError('user', id);
+        }
     }
 
-    private async listUsers(req: Request, res: Response) {
+    private async get(req: Request, res: Response) {
         const users = await this.userSvc?.list(new ResourceListOptions({
             offset: +R.pathOr(0, ['query', 'offset'], req),
             limit: +R.pathOr(9999, ['query', 'limit'], req)
@@ -77,11 +85,8 @@ export class UserRoutes extends AbstractRoute {
         res.status(200).json(users);
     }
 
-    private findUser(req: Request, res: Response) {
-        if (!req?.userParam) {
-            throw new EntityNotFoundError('user', req.user);
-        }
-
+    private getUser(req: Request, res: Response) {
+        this.setEtag(req.userParam, res);
         res.status(200).json(req.userParam);
     }
 
@@ -100,4 +105,15 @@ export class UserRoutes extends AbstractRoute {
         const user = await this.userSvc?.create(<UserDocument>body, password);
         res.status(200).json(user);
     }
+
+    private async postUserOrganization(req: Request, res: Response, session: ClientSession) {
+        utils.assertIsDefined(this.orgMgr);
+
+        this.validateEtag(req.get('ETag'), req.userParam);
+
+        const org = this.orgMgr.createOrganization(<UserDocument>req.userParam, <OrganizationDocument>req.body, session);
+
+        res.status(200).json(org);
+    }
+
 }

@@ -1,14 +1,12 @@
 import { inject, injectable } from "tsyringe";
 import { Configuration } from "../config";
 import mongoose from 'mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import * as utils from './index';
 import { Logger } from "winston";
 import { getLogger } from "./logger";
 import { ThingBookError } from "./error.utils";
 import { StatusCodes } from 'http-status-codes';
-
-const mongod = new MongoMemoryServer();
 
 export class DuplicateDatabaseEntryError extends ThingBookError {
     constructor(entityType: string, error: any) {
@@ -23,6 +21,7 @@ export class DatabaseValidationError extends ThingBookError {
         Error.captureStackTrace(this, DatabaseValidationError);
     }
 }
+
 export class UnknownDatabaseError extends ThingBookError {
     constructor(entityType: string, error: any) {
         super(StatusCodes.INTERNAL_SERVER_ERROR, `Unknown database error re: ${entityType}: ${error}`);
@@ -30,11 +29,22 @@ export class UnknownDatabaseError extends ThingBookError {
     }
 }
 
+export function assertIsValidObjectId(id: any) {
+    if (!mongoose.isValidObjectId(id)) {
+        throw new ThingBookError(StatusCodes.BAD_REQUEST, 'The request included an invalid Object ID');
+    }
+}
+
+export async function startSession() {
+    return await mongoose.startSession();
+}
+
 @injectable()
 export class Database {
 
     /** Winston-based logger */
     private logger: Logger = getLogger('Database');
+    private mongod: MongoMemoryReplSet | undefined = undefined;
 
     constructor(@inject("Configuration") private config?: Configuration) {
 
@@ -44,7 +54,9 @@ export class Database {
         utils.assertIsDefined(this.config);
 
         if (inMemory) {
-            this.config.databaseURL = await mongod.getUri();
+            this.mongod = new MongoMemoryReplSet();
+            await this.mongod.waitUntilRunning();
+            this.config.databaseURL = await this.mongod.getUri();
         }
 
         const mongooseOpts = {
@@ -63,8 +75,10 @@ export class Database {
     public async close() {
         utils.assertIsDefined(this.config);
 
-        await mongoose.connection.dropDatabase();
         await mongoose.connection.close();
+        if (this.mongod) {
+            this.mongod.stop();
+        }
 
         this.logger.debug("Closed connection to MongoDB: %s", this.config.databaseURL);
     }

@@ -1,11 +1,13 @@
 import { StatusCodes } from "http-status-codes";
+import { CustomError } from 'ts-custom-error'
 
-export class ThingBookError extends Error {
-    public httpCode: number;
+export class ThingBookError extends CustomError {
+    public statusCode: number;
 
-    constructor(httpCode: number, msg: string) {
+    constructor(statusCode: number, msg: string) {
         super(msg);
-        this.httpCode = httpCode;
+
+        this.statusCode = statusCode;
     }
 }
 

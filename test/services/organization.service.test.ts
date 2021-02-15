@@ -39,8 +39,8 @@ describe('OrganizationService', function () {
         // Instead, return the promise with an associated catch
         return uut.create(testOrg)
             .catch(function (error) {
-                expect(error).to.have.key('httpCode');
-                expect(error.httpCode).to.equal(409);
+                expect(error).to.have.key('statusCode');
+                expect(error.statusCode).to.equal(409);
             })
     });
     it('Will not create an incomplete Organization (missing name)', async function () {
@@ -52,37 +52,10 @@ describe('OrganizationService', function () {
 
         return uut.create(incompleteTestOrg)
             .catch(function (error) {
-                expect(error).to.have.key('httpCode');
-                expect(error.httpCode).to.equal(422);
+                expect(error).to.have.key('statusCode');
+                expect(error.statusCode).to.equal(422);
             })
 
-    });
-    it('Will not create an incomplete Organization (missing domainName)', async function () {
-        const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
-
-        const testOrg: any = createTestOrg();
-        const incompleteTestOrg = Object.assign(testOrg);
-        delete incompleteTestOrg.domainName;
-
-        return uut.create(incompleteTestOrg)
-            .catch(function (error) {
-                expect(error).to.have.key('httpCode');
-                expect(error.httpCode).to.equal(422);
-            })
-
-    });
-    it('Will not create an incomplete Organization (missing sensorThingsURL)', async function () {
-        const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
-
-        const testOrg: any = createTestOrg();
-        const incompleteTestOrg = Object.assign(testOrg);
-        delete incompleteTestOrg.sensorThingsURL;
-
-        return uut.create(incompleteTestOrg)
-            .catch(function (error) {
-                expect(error).to.have.key('httpCode');
-                expect(error.httpCode).to.equal(422);
-            })
     });
     it('Will list all existing Organizations', async function () {
         const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);

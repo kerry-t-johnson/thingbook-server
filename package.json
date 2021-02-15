@@ -4,7 +4,7 @@
   "description": "Server application for ThingBook",
   "main": "server.js",
   "scripts": {
-    "dev": "NODE_ENV=dev ts-node-dev --notify --respawn --clear --transpile-only --unhandled-rejections=strict --inspect=0.0.0.0:9229 ./src/application.ts",
+    "dev": "NODE_ENV=dev ts-node-dev --respawn --clear --transpile-only --unhandled-rejections=strict --inspect=0.0.0.0:9229 --exit-child ./src/application.ts",
     "test": "NODE_ENV=test mocha --exit --timeout 60000 --slow 8000 --require ts-node/register ./test/*.ts ./test/**/*.ts",
     "build": "tsc",
     "doc": "typedoc --watch --options ./.typedoc.json"
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/kerry-t-johnson/thingbook-server.git"
   },
   "author": "Kerry Johnson",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/kerry-t-johnson/thingbook-server/issues"
   },
@@ -42,7 +42,6 @@
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
-    "express-validator": "^6.9.2",
     "http-status-codes": "^2.1.4",
     "mongodb-memory-server": "^6.9.3",
     "mongoose": "^5.11.14",
@@ -50,8 +49,10 @@
     "passport": "^0.4.1",
     "passport-local-mongoose": "^6.1.0",
     "ramda": "^0.27.1",
+    "rand-token": "^1.0.1",
     "reflect-metadata": "^0.1.13",
     "sprintf-js": "^1.1.2",
+    "ts-custom-error": "^3.2.0",
     "tsyringe": "^4.4.0",
     "typedoc": "^0.20.22",
     "uuid": "^8.3.2",
