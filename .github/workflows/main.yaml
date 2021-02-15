@@ -1,4 +1,4 @@
-name: Node.js CI
+name: Compiles, Tests, and Builds Docker Container
 
 env:
   REPOSITORY_NAME: kerrytjohnson
