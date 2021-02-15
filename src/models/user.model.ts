@@ -1,4 +1,4 @@
-import { Schema, model, Document, PassportLocalModel, PassportLocalDocument, Model, isValidObjectId } from 'mongoose';
+import { Schema, model, Document, PassportLocalModel, PassportLocalDocument, Model } from 'mongoose';
 import passportLocalMongoose from 'passport-local-mongoose';
 import { isValidEmailAddress } from '../utils';
 import { assertIsValidObjectId } from '../utils/database.utils';

@@ -1,4 +1,4 @@
-import { Application as ExpressApplication, Router, Request, Response, NextFunction } from 'express';
+import { Application as ExpressApplication, Router, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { ResourceListOptions, UserService } from '../services/user.service';
 import R = require('ramda');
@@ -12,7 +12,6 @@ import { AbstractRoute } from './route.common';
 import { EntityNotFoundError } from '../utils/error.utils';
 import { OrganizationManager } from '../business/organization.manager';
 import { OrganizationDocument } from '../models/organization.model';
-import { ClientSession } from 'mongoose';
 
 @injectable()
 export class UserRoutes extends AbstractRoute {
@@ -106,12 +105,12 @@ export class UserRoutes extends AbstractRoute {
         res.status(200).json(user);
     }
 
-    private async postUserOrganization(req: Request, res: Response, session: ClientSession) {
+    private async postUserOrganization(req: Request, res: Response) {
         utils.assertIsDefined(this.orgMgr);
 
         this.validateEtag(req.get('ETag'), req.userParam);
 
-        const org = this.orgMgr.createOrganization(<UserDocument>req.userParam, <OrganizationDocument>req.body, session);
+        const org = this.orgMgr.createOrganization(<UserDocument>req.userParam, <OrganizationDocument>req.body);
 
         res.status(200).json(org);
     }

@@ -4,7 +4,6 @@ import { OrganizationService } from '../services/organization.service';
 import { inject, injectable } from 'tsyringe';
 import { OrganizationDocument, ResourceListOptions } from '../models/organization.model';
 import { AbstractRoute } from './route.common';
-import { ClientSession } from 'mongoose';
 
 @injectable()
 export class OrganizationRoutes extends AbstractRoute {

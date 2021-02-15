@@ -1,13 +1,9 @@
-import { StatusCodes } from "http-status-codes";
-import { ClientSession } from "mongoose";
 import { inject, injectable } from "tsyringe";
-import { DomainVerificationMethod, Organization, OrganizationDocument } from "../models/organization.model";
-import { OrganizationVerification, OrganizationVerificationMethod } from "../models/organization/organization_verification.model";
-import { User, UserDocument } from "../models/user.model";
+import { Organization, OrganizationDocument } from "../models/organization.model";
+import { UserDocument } from "../models/user.model";
 import { OrganizationService } from "../services/organization.service";
 import { UserService } from "../services/user.service";
 import { assertIsDefined, assertNotDefined, generateToken } from "../utils";
-import { ThingBookError } from "../utils/error.utils";
 import { AbstractManager } from "./manager.common";
 import { OrganizationManager } from "./organization.manager";
 

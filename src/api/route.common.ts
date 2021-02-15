@@ -2,8 +2,6 @@ import { NextFunction, Request, Response } from "express";
 import { Logger, getLogger } from "../utils/logger";
 import { ThingBookError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";
-import { startSession } from "../utils/database.utils";
-import { ClientSession } from "mongoose";
 import { sha256 } from "../utils";
 
 export class ExpressValidationError extends ThingBookError {
