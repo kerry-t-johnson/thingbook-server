@@ -2,7 +2,7 @@ import { Application as ExpressApplication, Router, Request, Response } from 'ex
 import R = require('ramda');
 import { OrganizationService } from '../services/organization.service';
 import { inject, injectable } from 'tsyringe';
-import { OrganizationDocument, ResourceListOptions } from '../models/organization.model';
+import { ResourceListOptions } from '../models/organization.model';
 import { AbstractRoute } from './route.common';
 
 @injectable()
