@@ -1,11 +1,12 @@
 shenandoah:
   user:
-    - email: kerry.t.johnson@gmail.com
+    - name: kerry.t.johnson@gmail.com
       password: password
   organization:
-    - name: Shenandoah Grill
+    - name: Shenandoah Inc.
       domainName: shenandoah.com
       sensorThingsURL: http://localhost:28080
-      # verification:
-      #   method: HTML_META_TAG
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
         

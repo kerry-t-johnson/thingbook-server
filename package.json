@@ -43,6 +43,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "http-status-codes": "^2.1.4",
+    "maskdata": "^1.1.4",
     "mongodb-memory-server": "^6.9.3",
     "mongoose": "^5.11.14",
     "morgan": "^1.10.0",

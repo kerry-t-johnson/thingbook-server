@@ -1,25 +1,18 @@
 import 'reflect-metadata';
-import * as faker from 'faker';
 import { OrganizationServiceImpl } from '../../src/services/organization.service.impl';
 import { Organization, OrganizationDocument, ResourceListOptions } from '../../src/models/organization.model';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
+import { ThingFaker } from '../thing.faker';
 
-function createTestOrg() {
-    return {
-        name: faker.random.words(),
-        domainName: faker.random.uuid() + '.com',
-        sensorThingsURL: faker.internet.url()
-    };
-}
 
 
 describe('OrganizationService', function () {
     it('Creates a new Organization', async function () {
         const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
 
-        const testOrg: any = createTestOrg();
-        const result: OrganizationDocument = await uut.create(testOrg);
+        const testOrg: any = ThingFaker.createTestOrg();
+        const result: OrganizationDocument = await uut.createOrganization(testOrg);
 
         expect(result.name).equal(testOrg.name);
         expect(result.domainName).equal(testOrg.domainName);
@@ -27,36 +20,39 @@ describe('OrganizationService', function () {
         expect(result._id).to.not.be.null;
         expect(isValidObjectId(result._id)).to.be.true;
     });
+
     it('Will not create a duplicate Organization', async function () {
         const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
 
-        const testOrg: any = createTestOrg();
-        await uut.create(testOrg);
+        const testOrg: any = ThingFaker.createTestOrg();
+        await uut.createOrganization(testOrg);
 
         // Cannot use this method due to the async nature:
         // expect(uut.create.bind(uut, testOrg)).to.throw();
 
         // Instead, return the promise with an associated catch
-        return uut.create(testOrg)
+        return uut.createOrganization(testOrg)
             .catch(function (error) {
                 expect(error).to.have.key('statusCode');
                 expect(error.statusCode).to.equal(409);
             })
     });
+
     it('Will not create an incomplete Organization (missing name)', async function () {
         const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
 
-        const testOrg: any = createTestOrg();
+        const testOrg: any = ThingFaker.createTestOrg();
         const incompleteTestOrg = Object.assign(testOrg);
         delete incompleteTestOrg.name;
 
-        return uut.create(incompleteTestOrg)
+        return uut.createOrganization(incompleteTestOrg)
             .catch(function (error) {
                 expect(error).to.have.key('statusCode');
                 expect(error.statusCode).to.equal(422);
             })
 
     });
+
     it('Will list all existing Organizations', async function () {
         const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
 
@@ -64,23 +60,24 @@ describe('OrganizationService', function () {
         const testOrgs: any[] = [];
 
         for (let i = 0; i < numOrganizations; ++i) {
-            const org: any = createTestOrg();
-            testOrgs.push(org);
-            await uut.create(org);
+            const testOrg: any = ThingFaker.createTestOrg();
+            testOrgs.push(testOrg);
+            await uut.createOrganization(testOrg);
         }
 
         const actual: OrganizationDocument[] = await uut.list(new ResourceListOptions({ limit: 1000 }));
 
         expect(actual.length).equal(testOrgs.length);
     });
+
     it('Will limit the number of Organizations returned', async function () {
         const uut: OrganizationServiceImpl = new OrganizationServiceImpl(Organization);
 
         const numOrganizations: number = 20;
 
         for (let i = 0; i < numOrganizations; ++i) {
-            const org: any = createTestOrg();
-            await uut.create(org);
+            const testOrg: any = ThingFaker.createTestOrg();
+            await uut.createOrganization(testOrg);
         }
 
         const limit = 7;

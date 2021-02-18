@@ -24,7 +24,7 @@ export class UserServiceImpl extends AbstractService implements UserService {
         return await this.userModel.findByEmailOrId(idOrEmail);
     }
 
-    public async create(user: UserDocument, password: string): Promise<UserDocument> {
+    public async createUser(user: UserDocument, password: string): Promise<UserDocument> {
         utils.assertIsDefined(this.userModel);
 
         try {

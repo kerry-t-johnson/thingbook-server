@@ -13,7 +13,6 @@ export class OrganizationRoutes extends AbstractRoute {
     public constructor(@inject("OrganizationService") private orgsvc?: OrganizationService) {
         super('Organization');
         this.router.get('/', this.wrapRoute(this.get));
-        this.router.post('/', this.wrapRoute(this.post));
     }
 
     public initialize(app: ExpressApplication, parent: Router) {
@@ -29,10 +28,6 @@ export class OrganizationRoutes extends AbstractRoute {
         res.status(200).json(orgs);
     }
 
-    private async post(req: Request, res: Response) {
-        const org = await this.orgsvc?.create(<OrganizationDocument>req.body);
-        res.status(200).json(org);
-    }
 
 }
 

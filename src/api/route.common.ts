@@ -45,9 +45,14 @@ export abstract class AbstractRoute {
         return this.processParam.bind(this, func.bind(this));
     }
 
-    processRoute(func: Function, req: Request, res: Response) {
-        this.validate(req);
-        func(req, res);
+    async processRoute(func: Function, req: Request, res: Response, next: NextFunction) {
+        try {
+            this.validate(req);
+            await func(req, res);
+        }
+        catch (error) {
+            next(error);
+        }
     }
 
     async processParam(func: Function, req: Request, res: Response, next: NextFunction, id: string | number) {

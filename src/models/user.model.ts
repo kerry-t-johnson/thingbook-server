@@ -1,14 +1,14 @@
 import { Schema, model, Document, PassportLocalModel, PassportLocalDocument, Model } from 'mongoose';
 import passportLocalMongoose from 'passport-local-mongoose';
-import { isValidEmailAddress } from '../utils';
+import { isValidEmailAddress, maskEmail } from '../utils';
 import { assertIsValidObjectId } from '../utils/database.utils';
 import { ResourceListOptions } from './options';
 
 export { ResourceListOptions }
 
+
 export interface UserDocument extends Document, PassportLocalDocument {
     email: string,
-
 }
 
 export const UserSchema = new Schema({
@@ -43,6 +43,10 @@ UserSchema.statics.findByEmailOrId = function (emailOrId: string | number): Prom
     return this.findById(emailOrId).exec();
 }
 
+UserSchema.methods.toString = function () {
+    return maskEmail(`${this.email}`);
+}
+
 UserSchema.methods.toJSON = function () {
     var obj: any = this.toObject();
 
@@ -58,3 +62,4 @@ UserSchema.plugin(passportLocalMongoose, {
 });
 
 export const User: UserModel = model<UserDocument, UserModel>('User', UserSchema);
+

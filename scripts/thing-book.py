@@ -20,19 +20,18 @@ class ItemNotFoundException(RuntimeError):
 
 class ItemsCreationDeferredException(RuntimeError):
 
-    def __init__(self):
+    def __init__(self, item = None):
         super().__init__()
-        self.deferred = {}
+        self.deferred = []
 
-    def append(self, resource, item):
+        if item:
+            self.append(item)
+
+    def append(self, item):
         if type(item) is ItemsCreationDeferredException:
-            for k in item.deferred.keys():
-                for v in item.deferred[k]:
-                    self.append(k, v)
+            self.deferred.extend(item.deferred)
         else:
-            deferred_for_type = self.deferred.get(resource, [])
-            deferred_for_type.append(item)
-            self.deferred[resource] = deferred_for_type
+            self.deferred.append(item)
 
     def __bool__(self):
         return len(self.deferred) > 0
@@ -86,6 +85,12 @@ class _ThingBookEntity(object):
 
         if refresh:
             self.refresh()
+
+    def name(self):
+        return self.data.get(self.name_key, '<UNKNOWN>')
+    
+    def id(self):
+        return self.data.get(self.id_key)
     
     def log(self, preamble = ''):
         self.logger.info('{p}{s}'.format(p = preamble, s = str(self)))
@@ -143,6 +148,10 @@ class StatusEntity(_ThingBookEntity):
 class UserEntity(_ThingBookEntity):
 
     def __init__(self, data={}):
+        # In the YAML file, we allow the email address to be specified as
+        # 'name' in order to be consistent with other types, but here we
+        # need to transfer the value over
+        data['email'] = data.get('email', data['name'])
         super().__init__('user', data = data, name_key = 'email')
 
         if not self.refreshed:
@@ -155,14 +164,43 @@ class OrganizationEntity(_ThingBookEntity):
         super().__init__('organization', data = data)
 
         if not self.refreshed:
-            self._create()
+            try:
+                userEntity = _ENTITY_REPOSITORY.getUser(self.data['user'])
+                self._create('user/{u}/organization'.format(u = userEntity.data['_id']))
+            except ItemNotFoundException:
+                raise ItemsCreationDeferredException(self)
 
+class EntityRepository(object):
+
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.repo = {
+            'user': {},
+            'organization': {}
+        }
+    
+    def entityExists(self, type, name):
+        return name in self.repo[type]
+
+    def getUser(self, email):
+        try:
+            return self.repo['user'][email]
+        except KeyError:
+            raise ItemNotFoundException('user', email)
+    
+    def addEntity(self, entity):
+        self.logger.debug('{r} "{n}" added to repository'.format(r = entity.resource.capitalize(),
+                                                                 n = entity.name()))
+        self.repo[entity.resource][entity.name()] = entity
 
 _ENTITY_FACTORIES = {
     'status': StatusEntity,
     'user': UserEntity,
     'organization': OrganizationEntity
 }
+
+_ENTITY_REPOSITORY = EntityRepository()
+
 
 
 def _process_yaml_element(el):
@@ -173,7 +211,9 @@ def _process_yaml_element(el):
             if factory:
                 _LOGGER.debug("Processing '{resource}' entity types...".format(resource=resource))
                 for item in value:
-                    item = factory(data = item)
+                    if not _ENTITY_REPOSITORY.entityExists(resource, item['name']):
+                        item = factory(data = item)
+                        _ENTITY_REPOSITORY.addEntity(item)
             else:
                 _LOGGER.debug("Recursing into '{resource}' ...".format(resource=resource))
                 _process_yaml_element(value)

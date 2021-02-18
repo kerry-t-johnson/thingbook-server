@@ -5,15 +5,12 @@ import { UserDocument } from './user.model';
 export { ResourceListOptions };
 
 
-export enum DomainVerificationMethod {
-    DNS_TEXT_RECORD = "DNS_TEXT_RECORD",
-    HTML_META_TAG = "HTML_META_TAG",
-    HTTP_FILE = "HTTP_FILE"
-};
+export const DomainVerificationMethods = [
+    'DNS_TEXT_RECORD',
+    'HTML_META_TAG',
+    'HTTP_FILE'
+];
 
-export const DomainVerificationMethodValues: string[] =
-    Object.keys(DomainVerificationMethod).map(k =>
-        DomainVerificationMethod[k as DomainVerificationMethod]);
 
 /**
  * Interface declaration for an {@link Organization}, as defined by {@link OrganizationSchema}
@@ -38,7 +35,7 @@ export interface OrganizationDocument extends Document {
     parent?: OrganizationDocument,
 
     verification?: {
-        method: DomainVerificationMethod | string,
+        method: string,
         token: string,
         user: UserDocument,
         verified: boolean,
@@ -57,7 +54,7 @@ export const OrganizationSchema = new Schema({
     sensorThingsURL: { type: String },
     parent: { type: Schema.Types.ObjectId, ref: 'Organization' },
     verification: new Schema({
-        method: { type: String, required: true, enum: DomainVerificationMethodValues },
+        method: { type: String, required: true, enum: DomainVerificationMethods },
         token: { type: String, required: true },
         user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         verified: { type: Boolean, required: true, default: false },
@@ -78,5 +75,31 @@ OrganizationSchema.statics.all = async function (options?: ResourceListOptions):
         .exec();
 }
 
+OrganizationSchema.methods.toString = function () {
+    return `${this.name} (${this.domainName})`;
+}
 
 export const Organization: OrganizationModel = model<OrganizationDocument, OrganizationModel>('Organization', OrganizationSchema);
+
+
+export interface OrganizationRoleDocument extends Document {
+    user: UserDocument,
+    org: OrganizationDocument,
+    role: string
+}
+
+export const OrganizationRoleSchema = new Schema({
+    user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    org: { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
+    role: { type: String, required: true },
+}, { timestamps: true });
+
+OrganizationRoleSchema.index({ user: 1, org: 1, role: 1 }, { unique: true });
+
+OrganizationSchema.methods.toString = function () {
+    return `${this.user} is ${this.role} for ${this.org}`;
+}
+
+export interface OrganizationRoleModel extends Model<OrganizationRoleDocument> {
+}
+export const OrganizationRole: OrganizationRoleModel = model<OrganizationRoleDocument, OrganizationRoleModel>('OrganizationRole', OrganizationRoleSchema);

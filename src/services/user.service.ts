@@ -6,6 +6,6 @@ export { ResourceListOptions };
 export interface UserService {
 
     list: (options?: ResourceListOptions) => Promise<UserDocument[]>;
-    create: (user: UserDocument, password: string) => Promise<UserDocument>;
+    createUser: (user: UserDocument, password: string) => Promise<UserDocument>;
     findUser: (idOrEmail: string | number) => Promise<UserDocument>;
 }

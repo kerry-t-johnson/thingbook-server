@@ -35,6 +35,7 @@ export class UserRoutes extends AbstractRoute {
         this.router.post('/register', this.wrapRoute(this.register));
 
         // Organization Management
+        this.router.get('/:user/organization', this.wrapRoute(this.getUserOrganization));
         this.router.post('/:user/organization', this.wrapRoute(this.postUserOrganization));
     }
 
@@ -101,16 +102,22 @@ export class UserRoutes extends AbstractRoute {
     private async register(req: Request, res: Response) {
         // Remove password field from request's JSON body:
         const { password, ...body } = req.body;
-        const user = await this.userSvc?.create(<UserDocument>body, password);
+        const user = await this.userSvc?.createUser(<UserDocument>body, password);
         res.status(200).json(user);
+    }
+
+    private async getUserOrganization(req: Request, res: Response) {
+        utils.assertIsDefined(this.orgMgr);
+
+        const result = await this.orgMgr.getOrganizations(<UserDocument>req.userParam);
+
+        res.status(200).json(result);
     }
 
     private async postUserOrganization(req: Request, res: Response) {
         utils.assertIsDefined(this.orgMgr);
 
-        this.validateEtag(req.get('ETag'), req.userParam);
-
-        const org = this.orgMgr.createOrganization(<UserDocument>req.userParam, <OrganizationDocument>req.body);
+        const org = await this.orgMgr.createOrganization(<UserDocument>req.userParam, <OrganizationDocument>req.body);
 
         res.status(200).json(org);
     }
