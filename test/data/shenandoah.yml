@@ -1,12 +1,93 @@
-shenandoah:
+thingbook:
   user:
     - name: kerry.t.johnson@gmail.com
       password: password
+
   organization:
     - name: Shenandoah Inc.
       domainName: shenandoah.com
-      sensorThingsURL: http://localhost:28080
+      sensorThingsURL: http://shenandoah:8080
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
+    
+    - name: Mesa Verde International
+      domainName: mesaverde.com
+      sensorThingsURL: http://mesaverde:8080
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+  org-template:
+    - name: Shenandoah Public Datastreams
+      org: Shenandoah Inc.
+      template: Generic Publishing Agreement
+      auto: true
+      keywords:
+        - motion
+        - fmv
+      datastreams:
+        - http://shenandoah:8080/v1.0/Datastreams(1)
+
+    - name: Mesa Verde Public Datastreams
+      org: Mesa Verde International
+      template: Generic Publishing Agreement
+      auto: true
+      keywords:
+        - motion
+        - fmv
+      datastreams:
+        - http://shenandoah:8080/v1.0/Datastreams(1)
+        - http://shenandoah:8080/v1.0/Datastreams(2)
+
+  org-agreement:
+    - name: Agreement Between Shenandoah and Mesa Verde
+      producer: Shenandoah Inc.
+      consumer: Mesa Verde International
+      commenceDate: '2021-02-17T03:24:00'
+      expirationDate: '2022-02-17T03:24:00'
+      state: ACTIVE
+      template: Shenandoah Public Datastreams
+
+  data:
+    ds-fragment:
+      - name: Consumer agrees to comply with applicable laws
+        text: >-
+          The Data Consumer agrees to use the DATA in compliance with
+          all applicable laws, regulations, and policies, and to maintain
+          any confidential or sensitive data using appropriate security
+          measures.
+        type: OBLIGATION
+
+      - name: Consumer may not share data
+        text: >-
+          The Data Consumer shall not release DATA to third parties
+        type: PROHIBITION
+      
+      - name: Severability of agreement
+        text: >-
+          The provisions of this Data Sharing Agreement are deemed to be
+          severable.  The invalidity, illegality or unenforceability of
+          one or more of such provisions shall not affect the validity,
+          legality or enforceability of the remaining provisions.
+        type: OBLIGATION
+
+      - name: Data is not warranteed
+        text: >-
+          THE PROVIDING PARTY GIVES NO WARRANTIES OR GUARANTEES, EXPRESS
+          OR IMPLIED, FOR THE MATERIAL/DATA, INCLUDING MERCHANTABILITY OR
+          FITNESS FOR A PARTICULAR PURPOSE.
+        type: OBLIGATION
         
+    ds-template:
+      - name: Generic Publishing Agreement
+        fragments:
+          - Consumer agrees to comply with applicable laws
+          - Consumer may not share data
+          - Severability of agreement
+          - Data is not warranteed
+
+
+
+
+

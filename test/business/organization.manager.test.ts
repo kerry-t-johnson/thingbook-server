@@ -9,8 +9,8 @@ import { expect } from 'chai';
 describe('OrganizationManager', function () {
 
     it('Creates a new Organization associated to a User', async function () {
-        const testUser: UserDocument = await ThingFaker.createTestUserEntity();
-        const testOrg: any = ThingFaker.createTestOrg(true);
+        const testUser: UserDocument = await ThingFaker.createUserEntity();
+        const testOrg: any = ThingFaker.createOrg(true);
 
         const uut: OrganizationManager = container.resolve("OrganizationManager");
         const result: OrganizationDocument = await uut.createOrganization(testUser, testOrg);
@@ -30,8 +30,8 @@ describe('OrganizationManager', function () {
     });
 
     it('Rejects a new Organization without verification.method', async function () {
-        const testUser: UserDocument = await ThingFaker.createTestUserEntity();
-        const testOrg: any = ThingFaker.createTestOrg();
+        const testUser: UserDocument = await ThingFaker.createUserEntity();
+        const testOrg: any = ThingFaker.createOrg();
 
         const uut: OrganizationManager = container.resolve("OrganizationManager");
         return uut.createOrganization(testUser, testOrg)
@@ -43,8 +43,8 @@ describe('OrganizationManager', function () {
     });
 
     it('Sanitizes results', async function () {
-        const testUser: UserDocument = await ThingFaker.createTestUserEntity();
-        const testOrg: any = ThingFaker.createTestOrg(true);
+        const testUser: UserDocument = await ThingFaker.createUserEntity();
+        const testOrg: any = ThingFaker.createOrg(true);
 
         const uut: OrganizationManager = container.resolve("OrganizationManager");
         await uut.createOrganization(testUser, testOrg);

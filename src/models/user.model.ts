@@ -14,10 +14,13 @@ export interface UserDocument extends Document, PassportLocalDocument {
 export const UserSchema = new Schema({
     email: { type: String, required: true, unique: true, index: true },
 
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    collection: 'user'
+});
 
 export interface UserModel extends Model<UserDocument>, PassportLocalModel<UserDocument> {
-    all: (options?: ResourceListOptions) => Promise<UserDocument[]>;
+    list: (options?: ResourceListOptions) => Promise<UserDocument[]>;
     findByEmailOrId: (idOrEmail: string | number) => Promise<UserDocument>;
 }
 
@@ -25,7 +28,7 @@ UserSchema.path('email').validate((value: string) => {
     return isValidEmailAddress(value);
 });
 
-UserSchema.statics.all = async function (options?: ResourceListOptions): Promise<UserDocument[]> {
+UserSchema.statics.list = async function (options?: ResourceListOptions): Promise<UserDocument[]> {
     options = options || new ResourceListOptions();
     return this.find()
         .sort(options.asSortCriteria())
@@ -34,13 +37,13 @@ UserSchema.statics.all = async function (options?: ResourceListOptions): Promise
         .exec();
 }
 
-UserSchema.statics.findByEmailOrId = function (emailOrId: string | number): Promise<UserDocument> {
+UserSchema.statics.findByEmailOrId = async function (emailOrId: string | number): Promise<UserDocument> {
     if (isValidEmailAddress(emailOrId)) {
-        return this.findOne({ email: emailOrId }).exec();
+        return await this.findOne({ email: emailOrId }).exec();
     }
 
     assertIsValidObjectId(emailOrId);
-    return this.findById(emailOrId).exec();
+    return await this.findById(emailOrId).exec();
 }
 
 UserSchema.methods.toString = function () {

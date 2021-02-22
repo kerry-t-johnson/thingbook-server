@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { Logger, getLogger } from "../utils/logger";
-import { ThingBookError } from "../utils/error.utils";
+import { EntityNotFoundError, ThingBookHttpError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";
 import { sha256 } from "../utils";
+import { ResourceListOptions } from "../models/options";
+import R = require('ramda');
 
-export class ExpressValidationError extends ThingBookError {
+export class ExpressValidationError extends ThingBookHttpError {
     constructor(error: any) {
         super(StatusCodes.BAD_REQUEST, error.errors[0].msg);
         Error.captureStackTrace(this, ExpressValidationError);
@@ -19,17 +21,24 @@ export abstract class AbstractRoute {
         this.logger = getLogger(routeName);
     }
 
+    protected getListOptions(req: Request): ResourceListOptions {
+        return new ResourceListOptions({
+            offset: +R.pathOr(0, ['query', 'offset'], req),
+            limit: +R.pathOr(9999, ['query', 'limit'], req)
+        });
+    }
+
     protected setEtag(entity: any, res: Response) {
         res.set({ 'ETag': sha256(entity.updatedAt.toLocaleString()) });
     }
 
     protected validateEtag(etag: string | undefined, entity: any) {
         if (!etag) {
-            throw new ThingBookError(StatusCodes.UNPROCESSABLE_ENTITY, `This action requires a valid ETag`);
+            throw new ThingBookHttpError(StatusCodes.UNPROCESSABLE_ENTITY, `This action requires a valid ETag`);
         }
 
         if (etag != sha256(entity.updatedAt.toLocaleString())) {
-            throw new ThingBookError(StatusCodes.CONFLICT, `Entity ${entity._id} has been modified by another`);
+            throw new ThingBookHttpError(StatusCodes.CONFLICT, `Entity ${entity._id} has been modified by another`);
         }
     }
 
@@ -48,16 +57,25 @@ export abstract class AbstractRoute {
     async processRoute(func: Function, req: Request, res: Response, next: NextFunction) {
         try {
             this.validate(req);
-            await func(req, res);
+            const result = await func(req, res);
+            res.status(200).json(result).end();
         }
         catch (error) {
             next(error);
         }
     }
 
-    async processParam(func: Function, req: Request, res: Response, next: NextFunction, id: string | number) {
+    async processParam(func: Function, req: Request, res: Response, next: NextFunction, id: string | number, name: string) {
         try {
-            await func(req, res, id);
+
+            const untypedReq: any = req;
+            const valueKey = `${name}Value`;
+            untypedReq[valueKey] = await func(req, id);
+
+            if (!untypedReq[valueKey]) {
+                throw new EntityNotFoundError(name, id);
+            }
+
             next();
         }
         catch (error) {

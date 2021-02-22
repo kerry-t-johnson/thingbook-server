@@ -1,7 +1,6 @@
 import { Application as ExpressApplication, Router, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
 import { ResourceListOptions, UserService } from '../services/user.service';
-import R = require('ramda');
 import { User, UserDocument } from '../models/user.model';
 import passport from 'passport';
 import session from 'express-session';
@@ -9,7 +8,6 @@ import { v4 as uuidv4 } from 'uuid';
 import { Configuration } from '../config';
 import * as utils from '../utils';
 import { AbstractRoute } from './route.common';
-import { EntityNotFoundError } from '../utils/error.utils';
 import { OrganizationManager } from '../business/organization.manager';
 import { OrganizationDocument } from '../models/organization.model';
 
@@ -66,60 +64,49 @@ export class UserRoutes extends AbstractRoute {
         parent.use('/user', this.router);
     }
 
-    private async populateUserParam(req: Request, res: Response, id: string | number) {
+    private async populateUserParam(req: Request, id: string | number) {
         utils.assertIsDefined(this.userSvc);
 
-        req.userParam = await this.userSvc.findUser(id);
-
-        if (!req.userParam) {
-            throw new EntityNotFoundError('user', id);
-        }
+        return await this.userSvc.findUser(id);
     }
 
     private async get(req: Request, res: Response) {
-        const users = await this.userSvc?.list(new ResourceListOptions({
-            offset: +R.pathOr(0, ['query', 'offset'], req),
-            limit: +R.pathOr(9999, ['query', 'limit'], req)
-        }));
+        utils.assertIsDefined(this.userSvc);
 
-        res.status(200).json(users);
+        const options: ResourceListOptions = this.getListOptions(req);
+        return await this.userSvc?.listUsers(options);
     }
 
     private getUser(req: Request, res: Response) {
-        this.setEtag(req.userParam, res);
-        res.status(200).json(req.userParam);
+        this.setEtag(req.userValue, res);
+        return req.userValue;
     }
 
     private login(req: Request, res: Response) {
-        res.status(200).json(req.user);
+        return req.user;
     }
 
     private logout(req: Request, res: Response) {
         req.logout();
-        res.status(200).end();
+        return {};
     }
 
     private async register(req: Request, res: Response) {
         // Remove password field from request's JSON body:
         const { password, ...body } = req.body;
-        const user = await this.userSvc?.createUser(<UserDocument>body, password);
-        res.status(200).json(user);
+        return await this.userSvc?.createUser(<UserDocument>body, password);
     }
 
     private async getUserOrganization(req: Request, res: Response) {
         utils.assertIsDefined(this.orgMgr);
 
-        const result = await this.orgMgr.getOrganizations(<UserDocument>req.userParam);
-
-        res.status(200).json(result);
+        return await this.orgMgr.getOrganizations(<UserDocument>req.userValue);
     }
 
     private async postUserOrganization(req: Request, res: Response) {
         utils.assertIsDefined(this.orgMgr);
 
-        const org = await this.orgMgr.createOrganization(<UserDocument>req.userParam, <OrganizationDocument>req.body);
-
-        res.status(200).json(org);
+        return this.orgMgr.createOrganization(<UserDocument>req.userValue, <OrganizationDocument>req.body);
     }
 
 }

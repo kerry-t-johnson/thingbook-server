@@ -4,7 +4,7 @@
   "description": "Server application for ThingBook",
   "main": "server.js",
   "scripts": {
-    "dev": "NODE_ENV=dev ts-node-dev --respawn --clear --transpile-only --unhandled-rejections=strict --inspect=0.0.0.0:9229 --exit-child ./src/application.ts",
+    "dev": "NODE_ENV=development ts-node-dev --respawn --clear --transpile-only --unhandled-rejections=strict --inspect=0.0.0.0:9229 --exit-child ./src/server.ts",
     "test": "NODE_ENV=test mocha --exit --timeout 60000 --slow 8000 --require ts-node/register ./test/*.ts ./test/**/*.ts",
     "build": "tsc",
     "doc": "typedoc --watch --options ./.typedoc.json"
@@ -26,6 +26,7 @@
   "homepage": "https://github.com/kerry-t-johnson/thingbook-server#readme",
   "dependencies": {
     "@types/agenda": "^3.0.2",
+    "@types/axios": "^0.14.0",
     "@types/bcrypt": "^3.0.0",
     "@types/connect-ensure-login": "^0.1.5",
     "@types/express": "^4.17.11",
@@ -35,9 +36,11 @@
     "@types/passport": "^1.0.6",
     "@types/passport-local-mongoose": "^4.0.13",
     "@types/ramda": "^0.27.36",
+    "@types/snake-case": "^1.1.2",
     "@types/sprintf-js": "^1.1.2",
     "@types/uuid": "^8.3.0",
     "agenda": "^4.0.1",
+    "axios": "^0.21.1",
     "connect-ensure-login": "^0.1.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
@@ -52,6 +55,7 @@
     "ramda": "^0.27.1",
     "rand-token": "^1.0.1",
     "reflect-metadata": "^0.1.13",
+    "snake-case": "^3.0.4",
     "sprintf-js": "^1.1.2",
     "ts-custom-error": "^3.2.0",
     "tsyringe": "^4.4.0",

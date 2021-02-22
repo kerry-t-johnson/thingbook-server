@@ -4,12 +4,14 @@ import { UserRoutes } from './user.route';
 import express, { Application as ExpressApplication, Router as ExpressRouter, Request, Response } from 'express';
 import morgan from 'morgan';
 import { AbstractRoute } from './route.common';
+import { DataSharingRoutes } from './data-sharing.route';
 
 export class Router extends AbstractRoute {
 
     public router: ExpressRouter = ExpressRouter();
     private organizationAPI: OrganizationRoutes = container.resolve(OrganizationRoutes);
     private userAPI: UserRoutes = container.resolve(UserRoutes);
+    private dataSharingAPI: DataSharingRoutes = container.resolve(DataSharingRoutes);
 
     constructor() {
         super('Router');
@@ -23,6 +25,7 @@ export class Router extends AbstractRoute {
         app.use('/api/v1', this.router);
         this.userAPI.initialize(app, this.router);
         this.organizationAPI.initialize(app, this.router);
+        this.dataSharingAPI.initialize(app, this.router);
 
         // Should always be last
         app.use(this.logError.bind(this));

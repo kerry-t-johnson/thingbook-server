@@ -9,6 +9,14 @@ const emailMaskOptions = {
     maskAtTheRate: false
 };
 
+export function getRandomInt(max: number) {
+    return Math.floor(Math.random() * Math.floor(max));
+}
+
+export function getRandomIntRange(min: number, max: number) {
+    const range: number = max - min;
+    return Math.floor(min) + Math.floor(Math.random() * Math.floor(range));
+}
 
 export function generateToken() {
     return token.generate(48);
@@ -37,4 +45,8 @@ export function isValidEmailAddress(value: any): boolean {
 
 export function maskEmail(value: string): string {
     return MaskData.maskEmail2(value, emailMaskOptions);
+}
+
+export function enumValues(arg: any): string[] {
+    return Object.keys(arg).map(k => arg[k]);
 }

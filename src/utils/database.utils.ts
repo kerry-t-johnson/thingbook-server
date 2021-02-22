@@ -1,28 +1,28 @@
-import { inject, injectable } from "tsyringe";
+import { injectable } from "tsyringe";
 import { Configuration } from "../config";
 import mongoose from 'mongoose';
 import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import * as utils from './index';
 import { Logger } from "winston";
 import { getLogger } from "./logger";
-import { ThingBookError } from "./error.utils";
+import { ThingBookHttpError } from "./error.utils";
 import { StatusCodes } from 'http-status-codes';
 
-export class DuplicateDatabaseEntryError extends ThingBookError {
+export class DuplicateDatabaseEntryError extends ThingBookHttpError {
     constructor(entityType: string, error: any) {
         super(StatusCodes.CONFLICT, `Attempted to create duplicate ${entityType} entity: ${error}`);
         Error.captureStackTrace(this, DuplicateDatabaseEntryError);
     }
 }
 
-export class DatabaseValidationError extends ThingBookError {
+export class DatabaseValidationError extends ThingBookHttpError {
     constructor(entityType: string, error: any) {
         super(StatusCodes.UNPROCESSABLE_ENTITY, `Attempted to create incomplete ${entityType} entity: ${error}`);
         Error.captureStackTrace(this, DatabaseValidationError);
     }
 }
 
-export class UnknownDatabaseError extends ThingBookError {
+export class UnknownDatabaseError extends ThingBookHttpError {
     constructor(entityType: string, error: any) {
         super(StatusCodes.INTERNAL_SERVER_ERROR, `Unknown database error re: ${entityType}: ${error}`);
         Error.captureStackTrace(this, UnknownDatabaseError);
@@ -31,7 +31,7 @@ export class UnknownDatabaseError extends ThingBookError {
 
 export function assertIsValidObjectId(id: any) {
     if (!mongoose.isValidObjectId(id)) {
-        throw new ThingBookError(StatusCodes.BAD_REQUEST, 'The request included an invalid Object ID');
+        throw new ThingBookHttpError(StatusCodes.NOT_FOUND, 'The request included an invalid Object ID');
     }
 }
 
@@ -45,31 +45,36 @@ export class Database {
     /** Winston-based logger */
     private logger: Logger = getLogger('Database');
     private mongod: MongoMemoryReplSet | undefined = undefined;
+    private connected: boolean = false;
 
-    constructor(@inject("Configuration") private config?: Configuration) {
+    constructor(private config: Configuration) {
 
     }
 
-    public async connect(inMemory: boolean = false) {
+    public async connect() {
         utils.assertIsDefined(this.config);
 
-        if (inMemory) {
-            this.mongod = new MongoMemoryReplSet();
-            await this.mongod.waitUntilRunning();
-            this.config.databaseURL = await this.mongod.getUri();
+        if (!this.connected) {
+            if (this.config.env == 'test') {
+                this.mongod = new MongoMemoryReplSet();
+                await this.mongod.waitUntilRunning();
+                this.config.databaseURL = await this.mongod.getUri();
+            }
+
+            const mongooseOpts = {
+                useNewUrlParser: true,
+                keepAlive: true,
+                connectTimeoutMS: 30000,
+                useUnifiedTopology: true,
+                useCreateIndex: true,
+                useFindAndModify: false,
+            };
+
+            await mongoose.connect(this.config.databaseURL, mongooseOpts);
+            this.connected = true;
+
+            this.logger.info("Connected to MongoDB: %s", this.config.databaseURL);
         }
-
-        const mongooseOpts = {
-            useNewUrlParser: true,
-            keepAlive: true,
-            connectTimeoutMS: 30000,
-            useUnifiedTopology: true,
-            useCreateIndex: true,
-        };
-
-        await mongoose.connect(this.config.databaseURL, mongooseOpts);
-
-        this.logger.info("Connected to MongoDB: %s", this.config.databaseURL);
     }
 
     public async close() {

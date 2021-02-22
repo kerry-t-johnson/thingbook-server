@@ -1,19 +1,20 @@
 import 'reflect-metadata';
 import * as faker from 'faker';
 import { UserServiceImpl } from '../../src/services/user.service.impl';
-import { User, UserDocument, ResourceListOptions } from '../../src/models/user.model';
+import { UserDocument, ResourceListOptions } from '../../src/models/user.model';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
 import { ThingFaker } from '../thing.faker';
+import { DependencyInjection } from '../../src/dependency-injection';
 
 
 
 describe('UserService', function () {
 
     it('Creates a new User', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
 
-        const testUser: any = ThingFaker.createTestUser();
+        const testUser: any = ThingFaker.createUser();
         const result: UserDocument = await uut.createUser(testUser, faker.internet.password());
 
         expect(result.email).equal(testUser.email);
@@ -22,9 +23,9 @@ describe('UserService', function () {
     });
 
     it('Will not create a duplicate User', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
 
-        const testUser: any = ThingFaker.createTestUser();
+        const testUser: any = ThingFaker.createUser();
         await uut.createUser(testUser, faker.internet.password());
 
         // Cannot use this method due to the async nature:
@@ -42,9 +43,9 @@ describe('UserService', function () {
     });
 
     it('Will not create an incomplete User (missing email)', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
 
-        const testUser: any = ThingFaker.createTestUser();
+        const testUser: any = ThingFaker.createUser();
         const incompleteTestUser = Object.assign(testUser);
         delete incompleteTestUser.email;
 
@@ -60,29 +61,29 @@ describe('UserService', function () {
     });
 
     it('Will list all existing Users', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
 
-        const numUsers: number = 31;
+        const numUsers: number = 12;
         const testUsers: any[] = [];
 
         for (let i = 0; i < numUsers; ++i) {
-            const testUser: any = ThingFaker.createTestUser();
+            const testUser: any = ThingFaker.createUser();
             testUsers.push(testUser);
             await uut.createUser(testUser, faker.internet.password());
         }
 
-        const actual: UserDocument[] = await uut.list(new ResourceListOptions({ limit: 1000 }));
+        const actual: UserDocument[] = await uut.listUsers(new ResourceListOptions({ limit: 1000 }));
 
         expect(actual.length).equal(testUsers.length);
     });
 
     it('Will limit the number of Users returned', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
 
-        const numUsers: number = 20;
+        const numUsers: number = 11;
 
         for (let i = 0; i < numUsers; ++i) {
-            const testUser: any = ThingFaker.createTestUser();
+            const testUser: any = ThingFaker.createUser();
             await uut.createUser(testUser, faker.internet.password());
         }
 
@@ -91,7 +92,7 @@ describe('UserService', function () {
         while (cumulative < numUsers) {
             const expectedCount = Math.min(limit, numUsers - cumulative);
 
-            const actual: UserDocument[] = await uut.list(new ResourceListOptions({ offset: cumulative, limit: limit }));
+            const actual: UserDocument[] = await uut.listUsers(new ResourceListOptions({ offset: cumulative, limit: limit }));
 
             expect(actual.length).equal(expectedCount);
 

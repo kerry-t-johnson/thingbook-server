@@ -1,37 +1,50 @@
-import { OrganizationDocument, OrganizationModel, OrganizationRoleDocument, OrganizationRoleModel, ResourceListOptions } from '../models/organization.model';
+import { Organization, OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplate, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatus, OrganizationSensorThingsStatusDocument, ResourceListOptions } from '../models/organization.model';
 import { OrganizationService } from './organization.service';
-import { injectable, inject } from 'tsyringe';
+import { injectable } from 'tsyringe';
 import { AbstractService } from './service.common';
-import * as utils from '../utils';
-import { Database } from '../utils/database.utils';
+import { assertIsValidObjectId, Database } from '../utils/database.utils';
 import { ClientSession } from 'mongoose';
+import { ThingBookHttpError } from '../utils/error.utils';
+import { StatusCodes } from 'http-status-codes';
 
 @injectable()
 export class OrganizationServiceImpl extends AbstractService implements OrganizationService {
 
-    constructor(
-        @inject("OrganizationModel") private orgModel?: OrganizationModel,
-        @inject("OrganizationRoleModel") private orgRoleModel?: OrganizationRoleModel) {
+    constructor() {
         super("OrganizationService");
     }
 
+    public async findOrganization(idOrName: string | number): Promise<OrganizationDocument> {
+        const foundByName = await Organization.findOne({ name: idOrName.toString() }).exec();
 
-    public async list(options?: ResourceListOptions): Promise<OrganizationDocument[]> {
-        utils.assertIsDefined(this.orgModel);
-        return this.orgModel.all(options);
+        if (foundByName) {
+            return foundByName;
+        }
+
+        assertIsValidObjectId(idOrName);
+        const foundById = await Organization.findById(idOrName).exec();
+
+        if (foundById) {
+            return foundById;
+        }
+
+        throw new ThingBookHttpError(StatusCodes.NOT_FOUND, `Unable to find Organization: ${idOrName}`);
+    }
+
+    public async listOrganizations(options?: ResourceListOptions): Promise<OrganizationDocument[]> {
+        return Organization.list(options);
     }
 
     public async createOrganization(org: OrganizationDocument, session?: ClientSession): Promise<OrganizationDocument> {
-        utils.assertIsDefined(this.orgModel);
 
         try {
             // Note the syntax which is used to create multiple.
             // This syntax must be used with transactions.
-            await this.orgModel.create([org], { session: session });
+            await Organization.create([org], { session: session });
 
-            this.logger.info("Created Organization %s: %s", org._id, org.name);
+            this.logger.info("Created Organization %s", org.name);
 
-            return await this.orgModel.findOne({ domainName: org.domainName }).session(session);
+            return await Organization.findOne({ domainName: org.domainName }).session(session);
         }
         catch (error) {
             throw Database.createException("Organization", error);
@@ -39,14 +52,13 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
     }
 
     public async createOrganizationRole(orgRole: OrganizationRoleDocument, session?: ClientSession): Promise<OrganizationRoleDocument> {
-        utils.assertIsDefined(this.orgRoleModel);
 
         try {
-            await this.orgRoleModel.create([orgRole], { session: session });
+            await OrganizationRole.create([orgRole], { session: session });
 
             this.logger.info("Created OrganizationRole: %s", orgRole);
 
-            return await this.orgRoleModel.findOne({
+            return await OrganizationRole.findOne({
                 user: orgRole.user._id,
                 org: orgRole.org._id,
                 role: orgRole.role
@@ -55,6 +67,112 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
         catch (error) {
             throw Database.createException("OrganizationRole", error);
         }
+    }
+
+    public async listOrganizationDataSharingTemplates(
+        org: OrganizationDocument,
+        options?: ResourceListOptions): Promise<OrganizationDataSharingTemplateDocument[]> {
+
+        options = options || new ResourceListOptions();
+        return await OrganizationDataSharingTemplate.find({ org: org._id })
+            .sort(options.asSortCriteria())
+            .skip(options.offset)
+            .limit(options.limit)
+            .populate('org', '-verification')
+            .populate('template')
+            .exec();
+    }
+
+
+    public async createOrganizationDataSharingTemplate(
+        template: OrganizationDataSharingTemplateDocument,
+        session?: ClientSession): Promise<OrganizationDataSharingTemplateDocument> {
+
+        try {
+            // Note the syntax which is used to create multiple.
+            // This syntax must be used with transactions.
+            await OrganizationDataSharingTemplate.create([template], { session: session });
+
+            this.logger.info("Created Organization DataSharingTemplate: %s", template.name || template.template.name);
+
+            return await OrganizationDataSharingTemplate.findOne({ org: template.org, template: template.template })
+                .populate('org', '-verification')
+                .populate('template')
+                .session(session);
+        }
+        catch (error) {
+            throw Database.createException("OrganizationDataSharingTemplate", error);
+        }
+    }
+
+    public async listOrganizationDataSharingAgreements(
+        org: OrganizationDocument,
+        options?: ResourceListOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
+
+        options = options || new ResourceListOptions();
+        return await OrganizationDataSharingAgreement.find({ $or: [{ producer: org._id }, { consumer: org._id }] })
+            .sort(options.asSortCriteria())
+            .skip(options.offset)
+            .limit(options.limit)
+            .populate('producer', '-verification')
+            .populate('consumer', '-verification')
+            .populate({
+                // Organization's template member of the Agreement:
+                path: 'template',
+                populate: {
+                    // Base template:
+                    path: 'template',
+                    populate: {
+                        path: 'fragments'
+                    }
+                }
+            })
+            .exec();
+    }
+
+    public async createOrganizationDataSharingAgreement(
+        agreement: OrganizationDataSharingAgreementDocument,
+        session?: ClientSession): Promise<OrganizationDataSharingAgreementDocument> {
+
+        try {
+            // Note the syntax which is used to create multiple.
+            // This syntax must be used with transactions.
+            const result: OrganizationDataSharingAgreementDocument[] = await OrganizationDataSharingAgreement.create([agreement], { session: session });
+            this.logger.info("Created Organization DataSharingAgreement: %s", agreement.name);
+
+            return OrganizationDataSharingAgreement.findById(result[0]?._id)
+                .populate('producer', '-verification')
+                .populate('consumer', '-verification')
+                .populate({
+                    // Organization's template member of the Agreement:
+                    path: 'template',
+                    populate: {
+                        // Base template:
+                        path: 'template',
+                        populate: {
+                            path: 'fragments'
+                        }
+                    }
+                })
+                .exec();
+        }
+        catch (error) {
+            throw Database.createException("OrganizationDataSharingAgreement", error);
+        }
+    }
+
+    public async updateSensorThingsStatus(
+        status: OrganizationSensorThingsStatusDocument,
+        session?: ClientSession): Promise<OrganizationSensorThingsStatusDocument> {
+
+        return await OrganizationSensorThingsStatus.findOneAndUpdate({
+            org: status.org._id
+        }, status, {
+            new: true,
+            session: session,
+            upsert: true
+        });
+
     }
 
 

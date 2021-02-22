@@ -2,14 +2,8 @@ import "reflect-metadata";
 import { container } from "tsyringe";
 import express, { Application as ExpressApplication } from 'express';
 import { Router } from './api';
-import { OrganizationServiceImpl } from "./services/organization.service.impl";
-import { User } from "./models/user.model";
 import { Logger, getLogger } from './utils/logger';
-import { UserServiceImpl } from "./services/user.service.impl";
-import { Organization, OrganizationRole } from "./models/organization.model";
 import { Configuration } from "./config";
-import { Database } from "./utils/database.utils";
-import { OrganizationManagerImpl } from "./business/organization.manager.impl";
 
 /**
  * Entrypoint for the application.
@@ -44,10 +38,6 @@ export class Application {
      * Runs the NodeJS application.
      */
     public async run() {
-        const db: Database = container.resolve("Database");
-
-        await db.connect();
-
         this.impl.listen(this.config.port, () => {
             this.logger.info('Server listening on port %s', this.config.port);
         });
@@ -55,17 +45,3 @@ export class Application {
 
 }
 
-const config: Configuration = new Configuration();
-
-// Dependency Injection
-container.register("Configuration", { useValue: config });
-container.register("Database", { useClass: Database });
-container.register("OrganizationModel", { useValue: Organization });
-container.register("OrganizationRoleModel", { useValue: OrganizationRole });
-container.register("OrganizationService", { useClass: OrganizationServiceImpl });
-container.register("OrganizationManager", { useClass: OrganizationManagerImpl });
-container.register("UserModel", { useValue: User });
-container.register("UserService", { useClass: UserServiceImpl });
-
-export const app: Application = new Application();
-app.run();
