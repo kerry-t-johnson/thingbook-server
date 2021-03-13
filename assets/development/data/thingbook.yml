@@ -1,0 +1,439 @@
+thingbook:
+  user:
+    - name: kerry.t.johnson@gmail.com
+      password: password
+
+  organization:
+    - name: Acadia
+      domainName: acadia.com
+      sensorThingsAPI: http://acadia:8080/v1.0
+      sensorThingsMQTT: mqtt://acadia-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Arches
+      domainName: arches.com
+      sensorThingsAPI: http://arches:8080/v1.0
+      sensorThingsMQTT: mqtt://arches-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Badlands
+      domainName: badlands.com
+      sensorThingsAPI: http://badlands:8080/v1.0
+      sensorThingsMQTT: mqtt://badlands-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Big Bend
+      domainName: bigbend.com
+      sensorThingsAPI: http://bigbend:8080/v1.0
+      sensorThingsMQTT: mqtt://bigbend-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Biscayne
+      domainName: biscayne.com
+      sensorThingsAPI: http://biscayne:8080/v1.0
+      sensorThingsMQTT: mqtt://biscayne-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Black Canyon of the Gunnison
+      domainName: blackcanyon.com
+      sensorThingsAPI: http://blackcanyon:8080/v1.0
+      sensorThingsMQTT: mqtt://blackcanyon-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Bryce Canyon
+      domainName: brycecanyon.com
+      sensorThingsAPI: http://brycecanyon:8080/v1.0
+      sensorThingsMQTT: mqtt://brycecanyon-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Canyonlands Inc.
+      domainName: canyonlands.com
+      sensorThingsAPI: http://canyonlands:8080/v1.0
+      sensorThingsMQTT: mqtt://canyonlands-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Capitol Reef
+      domainName: canyonlands.com
+      sensorThingsAPI: http://canyonlands:8080/v1.0
+      sensorThingsMQTT: mqtt://canyonlands-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Carlsbad Cavern
+      domainName: carlsbadcavern.com
+      sensorThingsAPI: http://carlsbadcavern:8080/v1.0
+      sensorThingsMQTT: mqtt://carlsbadcavern-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Channel Islands
+      domainName: channelislands.com
+      sensorThingsAPI: http://channelislands:8080/v1.0
+      sensorThingsMQTT: mqtt://channelislands-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Congaree
+      domainName: congaree.com
+      sensorThingsAPI: http://congaree:8080/v1.0
+      sensorThingsMQTT: mqtt://congaree-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Crater Lake
+      domainName: craterlake.com
+      sensorThingsAPI: http://craterlake:8080/v1.0
+      sensorThingsMQTT: mqtt://craterlake-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Cuyahoga Valley
+      domainName: cuyohogavalley.com
+      sensorThingsAPI: http://cuyohogavalley:8080/v1.0
+      sensorThingsMQTT: mqtt://cuyohogavalley-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Death Valley
+      domainName: deathvalley.com
+      sensorThingsAPI: http://deathvalley:8080/v1.0
+      sensorThingsMQTT: mqtt://deathvalley-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Denali
+      domainName: denali.com
+      sensorThingsAPI: http://denali:8080/v1.0
+      sensorThingsMQTT: mqtt://denali-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Dry Tortugas
+      domainName: drytortugas.com
+      sensorThingsAPI: http://drytortugas:8080/v1.0
+      sensorThingsMQTT: mqtt://drytortugas-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Everglades
+      domainName: everglades.com
+      sensorThingsAPI: http://everglades:8080/v1.0
+      sensorThingsMQTT: mqtt://everglades-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Gates of the Arctic
+      domainName: gatesofthearctic.com
+      sensorThingsAPI: http://gatesofthearctic:8080/v1.0
+      sensorThingsMQTT: mqtt://gatesofthearctic-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Gateway Arch
+      domainName: gatewayarch.com
+      sensorThingsAPI: http://gatewayarch:8080/v1.0
+      sensorThingsMQTT: mqtt://gatewayarch-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Glacier Bay
+      domainName: glacierbay.com
+      sensorThingsAPI: http://glacierbay:8080/v1.0
+      sensorThingsMQTT: mqtt://glacierbay-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Glacier
+      domainName: glacier.com
+      sensorThingsAPI: http://glacier:8080/v1.0
+      sensorThingsMQTT: mqtt://glacier-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Grand Canyon
+      domainName: grandcanyon.com
+      sensorThingsAPI: http://grandcanyon:8080/v1.0
+      sensorThingsMQTT: mqtt://grandcanyon-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Grand Teton
+      domainName: grandteton.com
+      sensorThingsAPI: http://grandteton:8080/v1.0
+      sensorThingsMQTT: mqtt://grandteton-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Great Basin
+      domainName: greatbasin.com
+      sensorThingsAPI: http://greatbasin:8080/v1.0
+      sensorThingsMQTT: mqtt://greatbasin-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Great Sand Dunes
+      domainName: greatsanddunes.com
+      sensorThingsAPI: http://greatsanddunes:8080/v1.0
+      sensorThingsMQTT: mqtt://greatsanddunes-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Great Smoky Mountains
+      domainName: greatsmokymountains.com
+      sensorThingsAPI: http://greatsmokymountains:8080/v1.0
+      sensorThingsMQTT: mqtt://greatsmokymountains-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Guadalupe Mountains
+      domainName: guadalupemountains.com
+      sensorThingsAPI: http://guadalupemountains:8080/v1.0
+      sensorThingsMQTT: mqtt://guadalupemountains-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Haleakala
+      domainName: haleakala.com
+      sensorThingsAPI: http://haleakala:8080/v1.0
+      sensorThingsMQTT: mqtt://haleakala-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Hawai'i Volcanoes
+      domainName: hawaiivolcanoes.com
+      sensorThingsAPI: http://hawaiivolcanoes:8080/v1.0
+      sensorThingsMQTT: mqtt://hawaiivolcanoes-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Hot Springs
+      domainName: hotsprings.com
+      sensorThingsAPI: http://hotsprings:8080/v1.0
+      sensorThingsMQTT: mqtt://hotsprings-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Indiana Dunes
+      domainName: indianadunes.com
+      sensorThingsAPI: http://indianadunes:8080/v1.0
+      sensorThingsMQTT: mqtt://indianadunes-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Isle Royale
+      domainName: isleroyale.com
+      sensorThingsAPI: http://isleroyale:8080/v1.0
+      sensorThingsMQTT: mqtt://isleroyale-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Joshua Tree
+      domainName: joshuatree.com
+      sensorThingsAPI: http://joshuatree:8080/v1.0
+      sensorThingsMQTT: mqtt://joshuatree-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Katmai
+      domainName: katmai.com
+      sensorThingsAPI: http://katmai:8080/v1.0
+      sensorThingsMQTT: mqtt://katmai-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Kenai Fjords
+      domainName: kenaifjords.com
+      sensorThingsAPI: http://kenaifjords:8080/v1.0
+      sensorThingsMQTT: mqtt://kenaifjords-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Kings Canyon
+      domainName: kingscanyon.com
+      sensorThingsAPI: http://kingscanyon:8080/v1.0
+      sensorThingsMQTT: mqtt://kingscanyon-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Kobuk Valley
+      domainName: kobukvalley.com
+      sensorThingsAPI: http://kobukvalley:8080/v1.0
+      sensorThingsMQTT: mqtt://kobukvalley-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Lake Clark
+      domainName: lakeclark.com
+      sensorThingsAPI: http://lakeclark:8080/v1.0
+      sensorThingsMQTT: mqtt://lakeclark-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+    
+    - name: Mammoth Cave
+      domainName: mammothcave.com
+      sensorThingsAPI: http://mammothcave:8080/v1.0
+      sensorThingsMQTT: mqtt://mammothcave-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+    
+    - name: Mesa Verde International
+      domainName: mesaverde.com
+      sensorThingsAPI: http://mesaverde:8080/v1.0
+      sensorThingsMQTT: mqtt://mesaverde-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+    
+    - name: Mount Rainier
+      domainName: mountrainier.com
+      sensorThingsAPI: http://mammothcave:8080/v1.0
+      sensorThingsMQTT: mqtt://mammothcave-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+    
+    - name: New River Gorge
+      domainName: newrivergorge.com
+      sensorThingsAPI: http://newrivergorge:8080/v1.0
+      sensorThingsMQTT: mqtt://newrivergorge-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+    
+    - name: North Cascades
+      domainName: northcascades.com
+      sensorThingsAPI: http://northcascades:8080/v1.0
+      sensorThingsMQTT: mqtt://northcascades-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+    - name: Shenandoah Inc.
+      domainName: shenandoah.com
+      sensorThingsAPI: http://shenandoah:8080/v1.0
+      sensorThingsMQTT: mqtt://shenandoah-mosquitto:1883
+      user: kerry.t.johnson@gmail.com
+      verification:
+        method: HTML_META_TAG
+
+  org-template:
+    - name: Shenandoah Public Datastreams
+      org: Shenandoah Inc.
+      template: Generic Publishing Agreement
+      auto: true
+      keywords:
+        - motion detection
+        - fmv
+      datastreams:
+        - Datastreams(1)
+
+    - name: Mesa Verde Public Datastreams
+      org: Mesa Verde International
+      template: Generic Publishing Agreement
+      auto: true
+      keywords:
+        - motion detection
+        - fmv
+      datastreams:
+        - Datastreams(1)
+        - Datastreams(2)
+
+  org-agreement:
+    - name: Agreement Between Shenandoah and Mesa Verde
+      producer: Mesa Verde International
+      consumer: Shenandoah Inc.
+      commenceDate: '2021-02-17T03:24:00'
+      expirationDate: '2022-02-17T03:24:00'
+      state: ACTIVE
+      template: Mesa Verde Public Datastreams
+
+  data:
+    ds-fragment:
+      - name: Consumer agrees to comply with applicable laws
+        text: >-
+          The Data Consumer agrees to use the DATA in compliance with
+          all applicable laws, regulations, and policies, and to maintain
+          any confidential or sensitive data using appropriate security
+          measures.
+        type: OBLIGATION
+
+      - name: Consumer may not share data
+        text: >-
+          The Data Consumer shall not release DATA to third parties
+        type: PROHIBITION
+      
+      - name: Severability of agreement
+        text: >-
+          The provisions of this Data Sharing Agreement are deemed to be
+          severable.  The invalidity, illegality or unenforceability of
+          one or more of such provisions shall not affect the validity,
+          legality or enforceability of the remaining provisions.
+        type: OBLIGATION
+
+      - name: Data is not warranteed
+        text: >-
+          THE PROVIDING PARTY GIVES NO WARRANTIES OR GUARANTEES, EXPRESS
+          OR IMPLIED, FOR THE MATERIAL/DATA, INCLUDING MERCHANTABILITY OR
+          FITNESS FOR A PARTICULAR PURPOSE.
+        type: OBLIGATION
+        
+    ds-template:
+      - name: Generic Publishing Agreement
+        fragments:
+          - Consumer agrees to comply with applicable laws
+          - Consumer may not share data
+          - Severability of agreement
+          - Data is not warranteed
+
+
+
+
+

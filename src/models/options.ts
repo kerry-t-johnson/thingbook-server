@@ -1,13 +1,14 @@
 
 
-export class ResourceListOptions {
+export class ListQueryOptions {
 
     public sort_field: string = '_id';
     public sort_asc: boolean = true;
     public offset: number = 0;
     public limit: number = 30;
 
-    constructor({ sort_field = '_id',
+    constructor({
+        sort_field = '_id',
         sort_asc = true,
         offset = 0,
         limit = 30 } = {}) {

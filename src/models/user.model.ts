@@ -1,23 +1,29 @@
 import { Schema, model, Document, PassportLocalModel, PassportLocalDocument, Model } from 'mongoose';
 import passportLocalMongoose from 'passport-local-mongoose';
-import { isValidEmailAddress } from '../utils';
+import { isValidEmailAddress, maskEmail } from '../utils';
 import { assertIsValidObjectId } from '../utils/database.utils';
-import { ResourceListOptions } from './options';
+import { ListQueryOptions } from './options';
+import * as api from 'thingbook-api';
 
-export { ResourceListOptions }
+export { ListQueryOptions as ListQueryOptions }
 
-export interface UserDocument extends Document, PassportLocalDocument {
-    email: string,
 
+export interface UserDocument extends Document, api.User, PassportLocalDocument {
 }
 
 export const UserSchema = new Schema({
     email: { type: String, required: true, unique: true, index: true },
+    first: { type: String, required: false },
+    last: { type: String, required: false },
+    profile: { type: Map, of: String }
 
-}, { timestamps: true });
+}, {
+    timestamps: true,
+    collection: 'user'
+});
 
 export interface UserModel extends Model<UserDocument>, PassportLocalModel<UserDocument> {
-    all: (options?: ResourceListOptions) => Promise<UserDocument[]>;
+    list: (options?: ListQueryOptions) => Promise<UserDocument[]>;
     findByEmailOrId: (idOrEmail: string | number) => Promise<UserDocument>;
 }
 
@@ -25,8 +31,8 @@ UserSchema.path('email').validate((value: string) => {
     return isValidEmailAddress(value);
 });
 
-UserSchema.statics.all = async function (options?: ResourceListOptions): Promise<UserDocument[]> {
-    options = options || new ResourceListOptions();
+UserSchema.statics.list = async function (options?: ListQueryOptions): Promise<UserDocument[]> {
+    options = options || new ListQueryOptions();
     return this.find()
         .sort(options.asSortCriteria())
         .skip(options.offset)
@@ -34,13 +40,17 @@ UserSchema.statics.all = async function (options?: ResourceListOptions): Promise
         .exec();
 }
 
-UserSchema.statics.findByEmailOrId = function (emailOrId: string | number): Promise<UserDocument> {
+UserSchema.statics.findByEmailOrId = async function (emailOrId: string | number): Promise<UserDocument> {
     if (isValidEmailAddress(emailOrId)) {
-        return this.findOne({ email: emailOrId }).exec();
+        return await this.findOne({ email: emailOrId }).exec();
     }
 
     assertIsValidObjectId(emailOrId);
-    return this.findById(emailOrId).exec();
+    return await this.findById(emailOrId).exec();
+}
+
+UserSchema.methods.toString = function () {
+    return maskEmail(`${this.email}`);
 }
 
 UserSchema.methods.toJSON = function () {
@@ -58,3 +68,4 @@ UserSchema.plugin(passportLocalMongoose, {
 });
 
 export const User: UserModel = model<UserDocument, UserModel>('User', UserSchema);
+

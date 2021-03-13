@@ -1,84 +1,90 @@
 import 'reflect-metadata';
 import * as faker from 'faker';
 import { UserServiceImpl } from '../../src/services/user.service.impl';
-import { User, UserDocument, ResourceListOptions } from '../../src/models/user.model';
+import { UserDocument, ListQueryOptions } from '../../src/models/user.model';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
-
-
-function createTestUser() {
-    return {
-        email: faker.internet.email()
-    };
-}
+import { ThingFaker } from '../thing.faker';
+import { DependencyInjection } from '../../src/dependency-injection';
 
 
 
 describe('UserService', function () {
-    it('Creates a new User', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
 
-        const testUser: any = createTestUser();
-        const result: UserDocument = await uut.create(testUser, faker.internet.password());
+    it('Creates a new User', async function () {
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
+
+        const testUser: any = ThingFaker.createUser();
+        const result: UserDocument = await uut.createUser(testUser, faker.internet.password());
 
         expect(result.email).equal(testUser.email);
         expect(result._id).to.not.be.null;
         expect(isValidObjectId(result._id)).to.be.true;
     });
-    it('Will not create a duplicate User', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
 
-        const testUser: any = createTestUser();
-        await uut.create(testUser, faker.internet.password());
+    it('Will not create a duplicate User', async function () {
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
+
+        const testUser: any = ThingFaker.createUser();
+        await uut.createUser(testUser, faker.internet.password());
 
         // Cannot use this method due to the async nature:
         // expect(uut.create.bind(uut, testUser)).to.throw();
 
         // Instead, return the promise with an associated catch
-        return uut.create(testUser, faker.internet.password())
+        return uut.createUser(testUser, faker.internet.password())
+            .then(function (result) {
+                expect.fail("Expected exception");
+            })
             .catch(function (error) {
                 expect(error).to.have.key('statusCode');
                 expect(error.statusCode).to.equal(409);
             })
     });
-    it('Will not create an incomplete User (missing email)', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
 
-        const testUser: any = createTestUser();
+    it('Will not create an incomplete User (missing email)', async function () {
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
+
+        const testUser: any = ThingFaker.createUser();
         const incompleteTestUser = Object.assign(testUser);
         delete incompleteTestUser.email;
 
-        return uut.create(incompleteTestUser, faker.internet.password())
+        return uut.createUser(incompleteTestUser, faker.internet.password())
+            .then(function (result) {
+                expect.fail("Expected exception");
+            })
             .catch(function (error) {
                 expect(error).to.have.key('statusCode');
                 expect(error.statusCode).to.equal(422);
             })
 
     });
-    it('Will list all existing Users', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
 
-        const numUsers: number = 31;
+    it('Will list all existing Users', async function () {
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
+
+        const numUsers: number = 12;
         const testUsers: any[] = [];
 
         for (let i = 0; i < numUsers; ++i) {
-            const org: any = createTestUser();
-            testUsers.push(org);
-            await uut.create(org, faker.internet.password());
+            const testUser: any = ThingFaker.createUser();
+            testUsers.push(testUser);
+            await uut.createUser(testUser, faker.internet.password());
         }
 
-        const actual: UserDocument[] = await uut.list(new ResourceListOptions({ limit: 1000 }));
+        const actual: UserDocument[] = await uut.listUsers(new ListQueryOptions({ limit: 1000 }));
 
         expect(actual.length).equal(testUsers.length);
     });
-    it('Will limit the number of Users returned', async function () {
-        const uut: UserServiceImpl = new UserServiceImpl(User);
 
-        const numUsers: number = 20;
+    it('Will limit the number of Users returned', async function () {
+        const uut: UserServiceImpl = DependencyInjection.resolve("UserService");
+
+        const numUsers: number = 11;
 
         for (let i = 0; i < numUsers; ++i) {
-            const org: any = createTestUser();
-            await uut.create(org, faker.internet.password());
+            const testUser: any = ThingFaker.createUser();
+            await uut.createUser(testUser, faker.internet.password());
         }
 
         const limit = 7;
@@ -86,7 +92,7 @@ describe('UserService', function () {
         while (cumulative < numUsers) {
             const expectedCount = Math.min(limit, numUsers - cumulative);
 
-            const actual: UserDocument[] = await uut.list(new ResourceListOptions({ offset: cumulative, limit: limit }));
+            const actual: UserDocument[] = await uut.listUsers(new ListQueryOptions({ offset: cumulative, limit: limit }));
 
             expect(actual.length).equal(expectedCount);
 

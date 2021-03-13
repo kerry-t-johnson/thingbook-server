@@ -20,19 +20,18 @@ class ItemNotFoundException(RuntimeError):
 
 class ItemsCreationDeferredException(RuntimeError):
 
-    def __init__(self):
+    def __init__(self, item = None):
         super().__init__()
-        self.deferred = {}
+        self.deferred = []
 
-    def append(self, resource, item):
+        if item:
+            self.append(item)
+
+    def append(self, item):
         if type(item) is ItemsCreationDeferredException:
-            for k in item.deferred.keys():
-                for v in item.deferred[k]:
-                    self.append(k, v)
+            self.deferred.extend(item.deferred)
         else:
-            deferred_for_type = self.deferred.get(resource, [])
-            deferred_for_type.append(item)
-            self.deferred[resource] = deferred_for_type
+            self.deferred.append(item)
 
     def __bool__(self):
         return len(self.deferred) > 0
@@ -76,9 +75,10 @@ class ThingBookAPI(object):
 
 class _ThingBookEntity(object):
 
-    def __init__(self, resource, data={}, name_key = 'name', id_key = '_id', refresh = True):
+    def __init__(self, resource, data={}, yaml_key = None, name_key = 'name', id_key = '_id', refresh = True):
         self.resource = resource
         self.data = data
+        self.yaml_key = yaml_key if yaml_key else self.resource
         self.name_key = name_key
         self.id_key = id_key
         self.refreshed = None
@@ -86,6 +86,12 @@ class _ThingBookEntity(object):
 
         if refresh:
             self.refresh()
+
+    def name(self):
+        return self.data.get(self.name_key, '<UNKNOWN>')
+    
+    def id(self):
+        return self.data.get(self.id_key)
     
     def log(self, preamble = ''):
         self.logger.info('{p}{s}'.format(p = preamble, s = str(self)))
@@ -143,6 +149,10 @@ class StatusEntity(_ThingBookEntity):
 class UserEntity(_ThingBookEntity):
 
     def __init__(self, data={}):
+        # In the YAML file, we allow the email address to be specified as
+        # 'name' in order to be consistent with other types, but here we
+        # need to transfer the value over
+        data['email'] = data.get('email', data['name'])
         super().__init__('user', data = data, name_key = 'email')
 
         if not self.refreshed:
@@ -155,27 +165,146 @@ class OrganizationEntity(_ThingBookEntity):
         super().__init__('organization', data = data)
 
         if not self.refreshed:
+            try:
+                userEntity = _ENTITY_REPOSITORY.getUser(self.data['user'])
+                self._create('user/{u}/organization'.format(u = userEntity.data['_id']))
+            except ItemNotFoundException:
+                raise ItemsCreationDeferredException(self)
+
+class DataSharingFragment(_ThingBookEntity):
+
+    def __init__(self, data={}):
+        super().__init__('data-sharing/fragment', data, yaml_key='ds-fragment')
+
+        if not self.refreshed:
             self._create()
 
+
+class DataSharingTemplate(_ThingBookEntity):
+
+    def __init__(self, data={}):
+        super().__init__('data-sharing/template', data, yaml_key='ds-template')
+
+        if not self.refreshed:
+            try:
+                self.data['fragments'] = [_ENTITY_REPOSITORY.getDataSharingFragment(f).id() for f in self.data['fragments']]
+                self._create()
+            except ItemNotFoundException:
+                raise ItemsCreationDeferredException(self)
+
+
+class OrgDataSharingTemplate(_ThingBookEntity):
+
+    def __init__(self, data={}):
+        super().__init__('organization/{o}/template', data, yaml_key='org-template', refresh=False)
+        try:
+            self.data['org'] = _ENTITY_REPOSITORY.getOrganization(self.data['org']).id()
+            self.data['template'] = _ENTITY_REPOSITORY.getDataSharingTemplate(self.data['template']).id()
+            self.resource = self.resource.format(o = self.data['org'])
+
+            if not self.refresh():
+                self._create()
+        except ItemNotFoundException:
+            raise ItemsCreationDeferredException(self)
+
+
+class OrgDataSharingAgreement(_ThingBookEntity):
+
+    def __init__(self, data={}):
+        super().__init__('organization/{o}/agreement', data, yaml_key='org-agreement', refresh=False)
+        try:
+            self.data['producer'] = _ENTITY_REPOSITORY.getOrganization(self.data['producer']).id()
+            self.data['consumer'] = _ENTITY_REPOSITORY.getOrganization(self.data['consumer']).id()
+            self.data['template'] = _ENTITY_REPOSITORY.getOrganizationDataSharingTemplate(self.data['template']).id()
+            self.resource = self.resource.format(o = self.data['producer'])
+
+            if not self.refresh():
+                self._create()
+        except ItemNotFoundException:
+            raise ItemsCreationDeferredException(self)
+
+
+class EntityRepository(object):
+
+    def __init__(self):
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.repo = {
+            'user': {},
+            'organization': {},
+            'ds-fragment': {},
+            'ds-template': {},
+            'org-template': {},
+            'org-agreement': {},
+        }
+    
+    def entityExists(self, type, name):
+        return name in self.repo[type]
+
+    def getUser(self, email):
+        try:
+            return self.repo['user'][email]
+        except KeyError:
+            raise ItemNotFoundException('user', email)
+    
+    def getOrganization(self, name):
+        try:
+            return self.repo['organization'][name]
+        except KeyError:
+            raise ItemNotFoundException('organization', name)
+    
+    def getDataSharingFragment(self, name):
+        try:
+            return self.repo['ds-fragment'][name]
+        except KeyError:
+            raise ItemNotFoundException('ds-fragment', name)
+    
+    def getDataSharingTemplate(self, name):
+        try:
+            return self.repo['ds-template'][name]
+        except KeyError:
+            raise ItemNotFoundException('ds-template', name)
+    
+    def getOrganizationDataSharingTemplate(self, name):
+        try:
+            return self.repo['org-template'][name]
+        except KeyError:
+            raise ItemNotFoundException('org-template', name)
+
+    def addEntity(self, entity):
+        self.logger.debug('{r} "{n}" added to repository'.format(r = entity.yaml_key,
+                                                                 n = entity.name()))
+        self.repo[entity.yaml_key][entity.name()] = entity
 
 _ENTITY_FACTORIES = {
     'status': StatusEntity,
     'user': UserEntity,
-    'organization': OrganizationEntity
+    'organization': OrganizationEntity,
+    'ds-fragment': DataSharingFragment,
+    'ds-template': DataSharingTemplate,
+    'org-template': OrgDataSharingTemplate,
+    'org-agreement': OrgDataSharingAgreement,
 }
+
+_ENTITY_REPOSITORY = EntityRepository()
+
 
 
 def _process_yaml_element(el):
     deferred_elements = ItemsCreationDeferredException()
     if type(el) is dict:
-        for resource, value in el.items():
-            factory = _ENTITY_FACTORIES.get(resource)
+        for yaml_key, value in el.items():
+            factory = _ENTITY_FACTORIES.get(yaml_key)
             if factory:
-                _LOGGER.debug("Processing '{resource}' entity types...".format(resource=resource))
+                _LOGGER.debug("Processing '{yaml_key}' entity types...".format(yaml_key=yaml_key))
                 for item in value:
-                    item = factory(data = item)
+                    if not _ENTITY_REPOSITORY.entityExists(yaml_key, item['name']):
+                        try:
+                            item = factory(data = item)
+                            _ENTITY_REPOSITORY.addEntity(item)
+                        except ItemsCreationDeferredException as ex:
+                            deferred_elements.append(ex)
             else:
-                _LOGGER.debug("Recursing into '{resource}' ...".format(resource=resource))
+                _LOGGER.debug("Recursing into '{yaml_key}' ...".format(yaml_key=yaml_key))
                 _process_yaml_element(value)
     if deferred_elements:
         raise deferred_elements

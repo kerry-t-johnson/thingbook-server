@@ -1,11 +1,11 @@
-import { ResourceListOptions } from "../models/options";
+import { ListQueryOptions } from "../models/options";
 import { UserDocument } from "../models/user.model";
 
-export { ResourceListOptions };
+export { ListQueryOptions as ListQueryOptions };
 
 export interface UserService {
 
-    list: (options?: ResourceListOptions) => Promise<UserDocument[]>;
-    create: (user: UserDocument, password: string) => Promise<UserDocument>;
+    listUsers: (options?: ListQueryOptions) => Promise<UserDocument[]>;
+    createUser: (user: UserDocument, password: string) => Promise<UserDocument>;
     findUser: (idOrEmail: string | number) => Promise<UserDocument>;
 }

@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"uri": "vscode-remote://dev-container+5c5c77736c245c5562756e74752d31382e30345c686f6d655c6b657272795c6465765c5468696e67426f6f6b/opt/thingbook-server"
+		},
+		{
+			"uri": "vscode-remote://dev-container+5c5c77736c245c5562756e74752d31382e30345c686f6d655c6b657272795c6465765c5468696e67426f6f6b/opt/thingbook-api"
+		},
+		{
+			"uri": "vscode-remote://dev-container+5c5c77736c245c5562756e74752d31382e30345c686f6d655c6b657272795c6465765c5468696e67426f6f6b/opt/thingbook-ui"
+		},
+		{
+			"path": "../sensor-things"
+		},
+		{
+			"path": "../thingbook-doc"
+		},
+		{
+			"path": "../thingbook-ui.bak"
+		}
+	],
+	"remoteAuthority": "dev-container+5c5c77736c245c5562756e74752d31382e30345c686f6d655c6b657272795c6465765c5468696e67426f6f6b",
+	"settings": {
+		"typescript.preferences.importModuleSpecifier": "non-relative",
+		"javascript.preferences.importModuleSpecifier": "non-relative"
+	}
+}

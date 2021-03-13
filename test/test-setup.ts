@@ -1,21 +1,19 @@
 import 'reflect-metadata';
 import { container } from "tsyringe";
-import { Configuration } from '../src/config';
+import { DependencyInjection } from '../src/dependency-injection';
 import { Database } from '../src/utils/database.utils';
 
-const config: Configuration = new Configuration();
-container.register("Configuration", { useValue: config });
-
-const db: Database = new Database(config);
 
 before(async function () {
-    await db.connect(true);
+    await DependencyInjection.initialize();
 });
 
 beforeEach(async function () {
+    const db: Database = container.resolve("Database");
     await db.clear();
 });
 
 after(async function () {
+    const db: Database = container.resolve("Database");
     await db.close();
 });

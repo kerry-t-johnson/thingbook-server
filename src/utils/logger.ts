@@ -1,5 +1,4 @@
 import * as winston from 'winston';
-import { container } from "tsyringe";
 import { Logger } from 'winston';
 import { sprintf } from 'sprintf-js';
 import { Configuration } from '../config';
@@ -8,7 +7,7 @@ export { Logger };
 
 
 export function getLogger(name: String): Logger {
-    const config: Configuration = container.resolve("Configuration");
+    const config: Configuration = new Configuration();
 
     return winston.createLogger({
         level: config.logLevel,

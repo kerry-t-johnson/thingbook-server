@@ -1,15 +1,12 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
 import express, { Application as ExpressApplication } from 'express';
-import { Router } from './api';
-import { OrganizationServiceImpl } from "./services/organization.service.impl";
-import { User } from "./models/user.model";
+import { Router } from './routes';
 import { Logger, getLogger } from './utils/logger';
-import { UserServiceImpl } from "./services/user.service.impl";
-import { Organization } from "./models/organization.model";
 import { Configuration } from "./config";
-import { Database } from "./utils/database.utils";
-import { OrganizationManagerImpl } from "./business/organization.manager.impl";
+import { EventService } from "./services/event-service";
+import * as http from 'http';
+import { SocketService } from "./services/socket.service";
 
 /**
  * Entrypoint for the application.
@@ -22,6 +19,8 @@ import { OrganizationManagerImpl } from "./business/organization.manager.impl";
  */
 export class Application {
 
+    private httpServer: http.Server;
+
     /** The underlying implementation is an [express.Application](http://expressjs.com/en/api.html#app) */
     private impl: ExpressApplication = express();
 
@@ -33,38 +32,31 @@ export class Application {
 
     private config: Configuration = container.resolve("Configuration");
 
+    private eventSvc: EventService = container.resolve("EventService");
+
+    private socketSvc: SocketService = container.resolve("SocketService");
+
     /**
      * Instantiates the application, connects the middleware, creates routes, etc.
      */
     constructor() {
-        this.router.initialize(this.impl);
+        this.httpServer = http.createServer(this.impl);
+        this.router.configure(this.impl);
     }
 
     /**
      * Runs the NodeJS application.
      */
     public async run() {
-        const db: Database = container.resolve("Database");
+        this.eventSvc.post('application.initialized');
 
-        await db.connect();
-
-        this.impl.listen(this.config.port, () => {
+        this.httpServer.listen(this.config.port, () => {
             this.logger.info('Server listening on port %s', this.config.port);
         });
+
+        this.socketSvc.initialize(this.httpServer);
+
     }
 
 }
 
-const config: Configuration = new Configuration();
-
-// Dependency Injection
-container.register("Configuration", { useValue: config });
-container.register("Database", { useClass: Database });
-container.register("OrganizationModel", { useValue: Organization });
-container.register("OrganizationService", { useClass: OrganizationServiceImpl });
-container.register("OrganizationManager", {useClass: OrganizationManagerImpl});
-container.register("UserModel", { useValue: User });
-container.register("UserService", { useClass: UserServiceImpl });
-
-export const app: Application = new Application();
-app.run();
