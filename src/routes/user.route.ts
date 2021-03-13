@@ -1,26 +1,54 @@
-import { Application as ExpressApplication, Router, Request, Response } from 'express';
+import { Application as ExpressApplication, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { ResourceListOptions, UserService } from '../services/user.service';
+import { ListQueryOptions, UserService } from '../services/user.service';
 import { User, UserDocument } from '../models/user.model';
 import passport from 'passport';
 import session from 'express-session';
 import { v4 as uuidv4 } from 'uuid';
-import { Configuration } from '../config';
 import * as utils from '../utils';
 import { AbstractRoute } from './route.common';
 import { OrganizationManager } from '../business/organization.manager';
 import { OrganizationDocument } from '../models/organization.model';
+import * as core from 'express-serve-static-core';
 
 @injectable()
 export class UserRoutes extends AbstractRoute {
 
-    private router: Router = Router();
-
     public constructor(
         @inject("UserService") private userSvc?: UserService,
-        @inject("OrganizationManager") private orgMgr?: OrganizationManager,
-        @inject("Configuration") private config?: Configuration) {
+        @inject("OrganizationManager") private orgMgr?: OrganizationManager) {
         super("User");
+    }
+
+    public initialize(app: ExpressApplication) {
+        super.initialize(app);
+
+        utils.assertIsDefined(this.config);
+
+        app.use(session({
+            secret: this.config?.sessionSecret,
+            resave: false,
+            saveUninitialized: true,
+            cookie: {
+                httpOnly: true,
+                sameSite: 'none',
+                maxAge: 600000 // Time is in miliseconds
+            },
+            genid: function (req: Request) {
+                return uuidv4();
+            }
+        }));
+        app.use(passport.initialize());
+        app.use(passport.session());
+
+        passport.use(User.createStrategy());
+        passport.deserializeUser(User.deserializeUser());
+        // @ts-ignore
+        passport.serializeUser(User.serializeUser());
+    }
+
+    public addRoutes(parent: core.Router): void {
+        super.addRoutes(parent);
 
         // Parameters
         this.router.param('user', this.wrapParam(this.populateUserParam));
@@ -35,34 +63,9 @@ export class UserRoutes extends AbstractRoute {
         // Organization Management
         this.router.get('/:user/organization', this.wrapRoute(this.getUserOrganization));
         this.router.post('/:user/organization', this.wrapRoute(this.postUserOrganization));
-    }
-
-    public initialize(app: ExpressApplication, parent: Router) {
-        utils.assertIsDefined(this.config);
-
-        app.use(session({
-            secret: this.config?.sessionSecret,
-            resave: false,
-            saveUninitialized: false,
-            cookie: {
-                httpOnly: true,
-                sameSite: true,
-                maxAge: 600000 // Time is in miliseconds
-            },
-            genid: function (req: Request) {
-                return uuidv4();
-            }
-        }));
-        app.use(passport.initialize());
-        app.use(passport.session());
-
-        passport.use(User.createStrategy());
-        passport.deserializeUser(User.deserializeUser());
-        // @ts-ignore
-        passport.serializeUser(User.serializeUser());
-
         parent.use('/user', this.router);
     }
+
 
     private async populateUserParam(req: Request, id: string | number) {
         utils.assertIsDefined(this.userSvc);
@@ -73,7 +76,7 @@ export class UserRoutes extends AbstractRoute {
     private async get(req: Request, res: Response) {
         utils.assertIsDefined(this.userSvc);
 
-        const options: ResourceListOptions = this.getListOptions(req);
+        const options: ListQueryOptions = this.getListOptions(req);
         return await this.userSvc?.listUsers(options);
     }
 

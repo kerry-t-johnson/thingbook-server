@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { OrganizationDocument, ResourceListOptions } from '../../src/models/organization.model';
+import { OrganizationDocument, ListQueryOptions } from '../../src/models/organization.model';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
 import { ThingFaker } from '../thing.faker';
@@ -17,7 +17,7 @@ describe('OrganizationService', function () {
 
         expect(result.name).equal(testOrg.name);
         expect(result.domainName).equal(testOrg.domainName);
-        expect(result.sensorThingsURL).equal(testOrg.sensorThingsURL);
+        expect(result.sensorThingsAPI).equal(testOrg.sensorThingsAPI);
         expect(result._id).to.not.be.null;
         expect(isValidObjectId(result._id)).to.be.true;
     });
@@ -66,7 +66,7 @@ describe('OrganizationService', function () {
             await uut.createOrganization(testOrg);
         }
 
-        const actual: OrganizationDocument[] = await uut.listOrganizations(new ResourceListOptions({ limit: 1000 }));
+        const actual: OrganizationDocument[] = await uut.listOrganizations(new ListQueryOptions({ limit: 1000 }));
 
         expect(actual.length).equal(testOrgs.length);
     });
@@ -86,7 +86,7 @@ describe('OrganizationService', function () {
         while (cumulative < numOrganizations) {
             const expectedCount = Math.min(limit, numOrganizations - cumulative);
 
-            const actual: OrganizationDocument[] = await uut.listOrganizations(new ResourceListOptions({ offset: cumulative, limit: limit }));
+            const actual: OrganizationDocument[] = await uut.listOrganizations(new ListQueryOptions({ offset: cumulative, limit: limit }));
 
             expect(actual.length).equal(expectedCount);
 

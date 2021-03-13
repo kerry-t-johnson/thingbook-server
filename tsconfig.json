@@ -36,6 +36,8 @@
   "include": [
     "src/**/*",
     "test/**/*",
-    "custom_types/**/*"
+    "development/**/*",
+    "cli/**/*",
+    "custom_types/**/*",
   ]
 }

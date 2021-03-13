@@ -1,7 +1,7 @@
 import Agenda, { Job } from "agenda";
 import { StatusCodes } from "http-status-codes";
 import { inject, injectable } from "tsyringe";
-import { Organization, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatusDocument } from "../models/organization.model";
+import { Organization, OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplate, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatusDocument } from "../models/organization.model";
 import { UserDocument } from "../models/user.model";
 import { OrganizationService } from "../services/organization.service";
 import { UserService } from "../services/user.service";
@@ -11,20 +11,28 @@ import { ThingBookHttpError } from "../utils/error.utils";
 import { AbstractManager } from "./manager.common";
 import { OrganizationManager } from "./organization.manager";
 import { Configuration } from "../config";
-import { SensorThings } from "../services/sensor-things.service";
+import * as api from 'thingbook-api';
+import { EventService } from "../services/event-service";
+import { SensorThingsHTTP } from "../services/sensor-things.service";
+import { ObservationBroker } from "../services/observation-broker";
 
 @injectable()
 export class OrganizationManagerImpl extends AbstractManager implements OrganizationManager {
+
+    private dsBrokers: ObservationBroker[] = [];
 
     constructor(
         @inject("Configuration") private config?: Configuration,
         @inject("OrganizationService") private orgSvc?: OrganizationService,
         @inject("UserService") private userSvc?: UserService,
-        @inject("agenda") private agenda?: Agenda) {
+        @inject("agenda") private agenda?: Agenda,
+        @inject("EventService") private eventSvc?: EventService) {
         super('OrganizationManager');
         assertIsDefined(this.agenda);
+        assertIsDefined(this.eventSvc);
 
         this.agenda.define('sensor-things-api-status', this.checkSensorThingsApiStatus.bind(this));
+        this.eventSvc.listen('application.initialized', this.onApplicationInitialized.bind(this));
     }
 
     public async createOrganization(user: UserDocument, org: OrganizationDocument): Promise<OrganizationDocument> {
@@ -37,13 +45,14 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
 
         // This method is only for top-level Organizations, which MUST have:
         //  - Domain Name
-        //  - SensorThingsURL
+        //  - sensorThingsAPI
         //  - Domain Verification Method
         //
         // And must NOT have:
         //  - parent
         assertIsDefined(org.domainName);
-        assertIsDefined(org.sensorThingsURL);
+        assertIsDefined(org.sensorThingsAPI);
+        assertIsDefined(org.sensorThingsMQTT);
         assertNotDefined(org.parent);
         assertIsDefined(org.verification);
         assertIsDefined(org.verification.method);
@@ -63,8 +72,6 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
                 role: "OWNER"
             }, session);
 
-            await session.commitTransaction();
-
             const job: Job = await this.agenda.create(
                 "sensor-things-api-status", {
                 org: createdOrg._id
@@ -73,6 +80,8 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
                 .save();
 
             this.logger.debug(`Created ${job.attrs.name} to repeat every ${job.attrs.name} starting at ${job.attrs.nextRunAt}`);
+
+            await session.commitTransaction();
 
             return createdOrg;
         }
@@ -118,16 +127,48 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
         org: OrganizationDocument,
         agreement: OrganizationDataSharingAgreementDocument): Promise<OrganizationDataSharingAgreementDocument> {
         assertIsDefined(this.orgSvc);
+        assertIsDefined(this.agenda);
+        assertIsDefined(this.config);
+        assertIsDefined(this.eventSvc);
 
-        if (agreement.producer && org._id.toString() != agreement.producer) {
-            throw new ThingBookHttpError(StatusCodes.UNPROCESSABLE_ENTITY, `Mismatch between POSTed Organization and agreement Organization`);
+        console.log(agreement);
+
+        const session = await startSession();
+        try {
+            session.startTransaction();
+
+            if (agreement.producer && org._id.toString() != agreement.producer) {
+                throw new ThingBookHttpError(StatusCodes.UNPROCESSABLE_ENTITY, `Mismatch between POSTed Organization and agreement Organization`);
+            }
+
+            // It's OK if the client didn't specify the owning Organization, we
+            // deduce from the resource path:
+            agreement.producer = org;
+
+            // Retrieve the associated 'parent' template:
+            const template: api.OrganizationDataSharingTemplate = await OrganizationDataSharingTemplate.findById(agreement.template);
+
+            // Seed the metrics
+            agreement.datastreams = Array.from(template.datastreams, ds => <api.DataStreamMetrics>{ name: ds, id: 0, count: 0 });
+
+            const createdAgreement: OrganizationDataSharingAgreementDocument =
+                await this.orgSvc.createOrganizationDataSharingAgreement(agreement, session);
+
+            await session.commitTransaction();
+
+            this.dsBrokers.push(new ObservationBroker(createdAgreement));
+
+            this.eventSvc.post('data-sharing-agreement.created', createdAgreement);
+
+            return createdAgreement;
         }
-
-        // It's OK if the client didn't specify the owning Organization, we
-        // deduce from the resource path:
-        agreement.producer = org;
-
-        return await this.orgSvc.createOrganizationDataSharingAgreement(agreement);
+        catch (error) {
+            await session.abortTransaction();
+            throw error;
+        }
+        finally {
+            session.endSession();
+        }
     }
 
     private async checkSensorThingsApiStatus(job: Job) {
@@ -135,8 +176,8 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
         const status: any = { org: org._id, reachable: false, lastStatus: 'Unknown' };
 
         try {
-            const sensorThingsApi = new SensorThings(org.sensorThingsURL);
-            await sensorThingsApi.refresh();
+            const sensorThingsApi = SensorThingsHTTP.getInstance(org.sensorThingsAPI);
+            await sensorThingsApi.get();
 
             status.reachable = true;
             status.lastStatus = 'Success';
@@ -150,6 +191,21 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
                 this.logger.error(error);
             });
         }
+    }
+
+    private async onApplicationInitialized(event: any) {
+        assertIsDefined(this.orgSvc);
+
+        const agreements: OrganizationDataSharingAgreementDocument[] = await OrganizationDataSharingAgreement
+            .find({ state: api.OrganizationDataSharingAgreementState.ACTIVE })
+            .populate('producer')
+            .populate('consumer')
+            .exec();
+
+        for (let a of agreements) {
+            this.dsBrokers.push(new ObservationBroker(a));
+        }
+
     }
 
 }

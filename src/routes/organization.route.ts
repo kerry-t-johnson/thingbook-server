@@ -1,20 +1,23 @@
-import { Application as ExpressApplication, Router, Request, Response } from 'express';
+import { Request, Response } from 'express';
 import { OrganizationService } from '../services/organization.service';
 import { inject, injectable } from 'tsyringe';
-import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, ResourceListOptions } from '../models/organization.model';
+import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, ListQueryOptions } from '../models/organization.model';
 import { AbstractRoute } from './route.common';
 import { assertIsDefined } from '../utils';
 import { OrganizationManager } from '../business/organization.manager';
+import * as core from 'express-serve-static-core';
 
 @injectable()
 export class OrganizationRoutes extends AbstractRoute {
-
-    private router: Router = Router();
 
     public constructor(
         @inject("OrganizationService") private orgSvc?: OrganizationService,
         @inject("OrganizationManager") private orgMgr?: OrganizationManager) {
         super('Organization');
+    }
+
+    public addRoutes(parent: core.Router) {
+        super.addRoutes(parent);
 
         // Parameters
         this.router.param('org', this.wrapParam(this.populateOrgParam));
@@ -25,9 +28,7 @@ export class OrganizationRoutes extends AbstractRoute {
         this.router.post('/:org/template', this.wrapRoute(this.postOrgTemplate));
         this.router.get('/:org/agreement', this.wrapRoute(this.getOrgAgreements));
         this.router.post('/:org/agreement', this.wrapRoute(this.postOrgAgreement));
-    }
 
-    public initialize(app: ExpressApplication, parent: Router) {
         parent.use('/organization', this.router);
     }
 
@@ -44,7 +45,7 @@ export class OrganizationRoutes extends AbstractRoute {
 
     private async get(req: Request, res: Response): Promise<OrganizationDocument[]> {
         assertIsDefined(this.orgSvc);
-        const options: ResourceListOptions = this.getListOptions(req);
+        const options: ListQueryOptions = this.getListOptions(req);
         return await this.orgSvc.listOrganizations(options);
     }
 

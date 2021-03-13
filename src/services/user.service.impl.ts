@@ -3,7 +3,7 @@ import { User, UserDocument } from "../models/user.model";
 import { Database } from "../utils/database.utils";
 import { ThingBookHttpError } from "../utils/error.utils";
 import { AbstractService } from "./service.common";
-import { ResourceListOptions, UserService } from "./user.service";
+import { ListQueryOptions, UserService } from "./user.service";
 import { StatusCodes } from 'http-status-codes';
 
 @injectable()
@@ -13,7 +13,7 @@ export class UserServiceImpl extends AbstractService implements UserService {
         super("UserService");
     }
 
-    public async listUsers(options?: ResourceListOptions): Promise<UserDocument[]> {
+    public async listUsers(options?: ListQueryOptions): Promise<UserDocument[]> {
         return User.list(options);
     }
 

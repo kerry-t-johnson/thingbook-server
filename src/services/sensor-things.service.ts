@@ -1,39 +1,77 @@
 import { Logger } from "winston";
 import { getLogger } from "../utils/logger";
 import axios from "axios";
-import { ThingBookError } from "../utils/error.utils";
+import { ThingBookError, ThingBookHttpError } from "../utils/error.utils";
+import { ListQueryOptions } from "../models/options";
+import { MqttClient, connect as MqttConnect } from 'mqtt';
+import { StatusCodes } from "http-status-codes";
 
-export class SensorThings {
+export class SensorThingsHTTP {
 
-    private logger: Logger = getLogger('SensorThings');
+    private static INSTANCES: { [key: string]: SensorThingsHTTP } = {};
+
+    private logger: Logger = getLogger('SensorThingsHTTP');
     private url: string;
 
-    constructor(url: string, version: string = 'v1.0') {
-        this.url = `${url}/${version}`;
+    public static getInstance(url: string): SensorThingsHTTP {
+        let instance: SensorThingsHTTP | undefined = SensorThingsHTTP.INSTANCES[url];
+
+        if (!instance) {
+            instance = new SensorThingsHTTP(url);
+            SensorThingsHTTP.INSTANCES[url] = instance;
+        }
+
+        return instance;
     }
 
-    public async refresh() {
-        return await this.get();
+    private constructor(url: string) {
+        this.url = url;
     }
 
-    public async listDatastreams(max: number = 100) {
-        return await this.list('datastreams', 100);
+    public async get(resource: string | undefined = undefined) {
+        const url: string = resource ? `${this.url}/${resource}` : this.url;
+
+        const result = await axios.get(url);
+
+        return result.data;
     }
 
-    public async searchDatastreams(name: string) {
-        return await this.search(name, 'datastreams');
+    public async post(resource: string, data: any): Promise<any> {
+        const url: string = `${this.url}/${resource}`;
+
+        const result = await axios.post(url, data);
+
+        return result.data;
     }
 
-    public async getDataStream(id: number) {
-        return await this.get(`Datastreams(${id})`, false);
+    public async list<T>(resource?: string, query?: ListQueryOptions): Promise<T[]> {
+        query = query || new ListQueryOptions();
+
+        // sensor-things uses 'id' vice '_id':
+        query.sort_field = query.sort_field == '_id' ? 'id' : query.sort_field;
+
+        const baseUrl = resource ? `${this.url}/${resource}` : this.url;
+        const url: string = `${baseUrl}?\$orderby=${query.sort_field}%20${query.sort_asc ? 'asc' : 'desc'}&\$top=${query.limit}&\$skip=${query.offset}`;
+        this.logger.silly(url);
+
+        return new Promise(async function (resolve, reject) {
+            const result = await axios.get(url);
+
+            if (result.data && result.data.value) {
+                resolve(result.data.value);
+            }
+            else {
+                reject(new ThingBookError(`Unable to understand Sensor Things response: ${result.data}`));
+            }
+        });
     }
 
-    private async search(name: string, resource: string) {
-        const count = 20;
-        let offset = 0;
+    public async search(name: string, resource: string) {
+        this.logger.debug(`Searching for '${resource}' named '${name}'`);
+        let query = new ListQueryOptions();
 
         while (true) {
-            const items: any[] = await this.list(resource, count, offset);
+            const items: any[] = await this.list(resource, query);
 
             for (const i of items) {
                 if (i.name == name) {
@@ -41,32 +79,71 @@ export class SensorThings {
                 }
             }
 
-            if (items.length < count) {
-                throw new ThingBookError(`Unable to find ${resource} with name '${name}'`);
+            if (items.length < query.limit) {
+                throw new ThingBookHttpError(StatusCodes.NOT_FOUND, `Unable to find ${resource} with name '${name}'`);
             }
 
-            offset += count;
+            query.offset += query.limit;
         }
     }
 
-    private async list(resource: string, count: number = 10, offset: number = 0) {
-        const url: string = `${this.url}/${resource}?\$top=${count}&\$skip=${offset}`;
-        this.logger.silly(url);
-        return await this.get(url);
+}
+
+export class SensorThingsMQTT {
+
+    private static INSTANCES: { [key: string]: SensorThingsMQTT } = {};
+
+    private logger: Logger = getLogger('SensorThingsMQTT');
+    private url: string;
+    private mqtt: MqttClient;
+    private subscriptions: { [key: string]: Function[] } = {};
+
+    public static getInstance(url: string, options: any = { clientId: 'ThingBook' }): SensorThingsMQTT {
+        let instance: SensorThingsMQTT | undefined = SensorThingsMQTT.INSTANCES[url];
+        if (!instance) {
+            instance = new SensorThingsMQTT(url);
+            SensorThingsMQTT.INSTANCES[url] = instance;
+        }
+
+        return instance;
     }
 
-    private async get(resource: string | undefined = undefined, extract: boolean = true) {
-        const url: string = resource ? `${this.url}/${resource}` : this.url;
+    private constructor(url: string, options: any = { clientId: 'ThingBook' }) {
+        this.url = url;
+        this.mqtt = MqttConnect(url, options);
 
-        const result = await axios.get(url);
+        this.mqtt.on('connect', () => {
+            this.logger.debug(`Connected to MQTT broker: ${this.url}`);
+        });
 
-        if (!extract) {
-            return result.data;
-        }
-        else if (result.data && result.data.value) {
-            return result.data.value;
-        }
-
-        throw new ThingBookError(`Unable to understand Sensor Things response: ${result.data}`);
+        this.mqtt.on('message', this.onMessage.bind(this));
     }
+
+    public async subscribe(topic: string, func: Function) {
+        if (!(topic in this.subscriptions)) {
+            this.subscriptions[topic] = [];
+        }
+
+        this.subscriptions[topic]!.push(func);
+
+        if (this.subscriptions[topic]!.length == 1) {
+            this.mqtt.subscribe(topic, (error: any, granted: any) => {
+                if (error) {
+                    this.logger.error(error);
+                }
+                else {
+                    this.logger.debug(`Subscribed to ${this.url}#${topic}`);
+                }
+            });
+        }
+    }
+
+    private async onMessage(topic: string, message: any) {
+        const subscribers: Function[] = this.subscriptions[topic] ?? [];
+
+        for (let s of subscribers) {
+            s(topic, message);
+        }
+    }
+
 }

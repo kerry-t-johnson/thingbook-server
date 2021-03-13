@@ -1,12 +1,13 @@
 import * as faker from 'faker';
 import { container } from "tsyringe";
-import { DataSharingFragmentDocument, DataSharingFragmentType, DataSharingTemplateDocument } from '../src/models/data-sharing.model';
-import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingAgreementState, OrganizationDataSharingTemplateDocument, OrganizationDocument } from '../src/models/organization.model';
+import { DataSharingFragmentDocument, DataSharingTemplateDocument } from '../src/models/data-sharing.model';
+import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument } from '../src/models/organization.model';
 import { UserDocument } from '../src/models/user.model';
 import { DataSharingService } from '../src/services/data-sharing.service';
 import { OrganizationService } from '../src/services/organization.service';
 import { UserService } from '../src/services/user.service';
 import { enumValues, getRandomInt, getRandomIntRange } from '../src/utils';
+import * as api from 'thingbook-api';
 
 export class ThingFaker {
 
@@ -20,7 +21,7 @@ export class ThingFaker {
         const result: any = {
             name: faker.random.words(),
             domainName: faker.random.uuid() + '.com',
-            sensorThingsURL: faker.internet.url()
+            sensorThingsAPI: faker.internet.url()
         };
 
         if (withVerification) {
@@ -34,7 +35,7 @@ export class ThingFaker {
         return {
             name: faker.random.words(),
             text: faker.lorem.sentences(),
-            type: enumValues(DataSharingFragmentType)[getRandomInt(3)]
+            type: enumValues(api.DataSharingFragmentType)[getRandomInt(3)]
         };
     }
 
@@ -76,7 +77,7 @@ export class ThingFaker {
             consumer: testConsumer._id,
             commenceDate: faker.date.recent(),
             expirationDate: faker.date.future(),
-            state: OrganizationDataSharingAgreementState.ACTIVE.toString(),
+            state: api.OrganizationDataSharingAgreementState.ACTIVE.toString(),
             template: testTemplate._id
         });
     }

@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { DependencyInjection } from "../../src/dependency-injection";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../../src/models/data-sharing.model";
-import { ResourceListOptions } from "../../src/models/options";
+import { ListQueryOptions } from "../../src/models/options";
 import { DataSharingService } from "../../src/services/data-sharing.service";
 import { ThingFaker } from "../thing.faker";
 
@@ -25,7 +25,7 @@ describe('DataSharingService', function () {
             await ThingFaker.createDataSharingFragmentEntity();
         }
 
-        const actual: DataSharingFragmentDocument[] = await uut.listDataSharingFragments(new ResourceListOptions({ limit: 1000 }));
+        const actual: DataSharingFragmentDocument[] = await uut.listDataSharingFragments(new ListQueryOptions({ limit: 1000 }));
 
         expect(actual.length).equal(numTestItems);
 
@@ -52,7 +52,7 @@ describe('DataSharingService', function () {
             await ThingFaker.createDataSharingTemplateEntity();
         }
 
-        const actual: DataSharingTemplateDocument[] = await uut.listDataSharingTemplates(new ResourceListOptions({ limit: 1000 }));
+        const actual: DataSharingTemplateDocument[] = await uut.listDataSharingTemplates(new ListQueryOptions({ limit: 1000 }));
 
         expect(actual.length).equal(numTestItems);
 

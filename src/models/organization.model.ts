@@ -1,10 +1,10 @@
-import { ResourceListOptions } from './options';
+import { ListQueryOptions } from './options';
 import { Schema, model, Model, Document } from 'mongoose';
-import { UserDocument } from './user.model';
 import { DataSharingTemplateDocument } from './data-sharing.model';
 import { enumValues } from '../utils';
+import * as api from 'thingbook-api';
 
-export { ResourceListOptions };
+export { ListQueryOptions };
 
 // ===========================================================================
 // Organization
@@ -24,26 +24,8 @@ export const DomainVerificationMethods = [
  * 
  * @category Domain Model
  */
-export interface OrganizationDocument extends Document {
+export interface OrganizationDocument extends Document, api.Organization {
 
-    /** The common name of the {@link Organization} (e.g.Shenandoah, Inc.) */
-    name: string,
-
-    /** The domain name of the {@link Organization} (e.g.shenandoah.com) */
-    domainName: string,
-
-    /** The URL to the[OGC - compliant Sensor Things API](https://www.ogc.org/standards/sensorthings) of the {@link Organization} */
-    sensorThingsURL: string,
-
-    /** If this {@link Organization} is a sub-organizations, references the parent {@link Organization}, else NULL */
-    parent?: OrganizationDocument,
-
-    verification?: {
-        method: string,
-        token: string,
-        user: UserDocument,
-        verified: boolean,
-    }
 }
 
 /**
@@ -55,7 +37,8 @@ export interface OrganizationDocument extends Document {
 export const OrganizationSchema = new Schema({
     name: { type: String, required: true },
     domainName: { type: String, unique: true, index: true },
-    sensorThingsURL: { type: String },
+    sensorThingsAPI: { type: String },
+    sensorThingsMQTT: { type: String },
     parent: { type: Schema.Types.ObjectId, ref: 'Organization' },
     verification: new Schema({
         method: { type: String, required: true, enum: DomainVerificationMethods },
@@ -69,11 +52,11 @@ export const OrganizationSchema = new Schema({
 });
 
 export interface OrganizationModel extends Model<OrganizationDocument> {
-    list: (options?: ResourceListOptions) => Promise<OrganizationDocument[]>;
+    list: (options?: ListQueryOptions) => Promise<OrganizationDocument[]>;
 }
 
-OrganizationSchema.statics.list = async function (options?: ResourceListOptions): Promise<OrganizationDocument[]> {
-    options = options || new ResourceListOptions();
+OrganizationSchema.statics.list = async function (options?: ListQueryOptions): Promise<OrganizationDocument[]> {
+    options = options || new ListQueryOptions();
 
     return this.find()
         .sort(options.asSortCriteria())
@@ -92,10 +75,7 @@ export const Organization: OrganizationModel = model<OrganizationDocument, Organ
 // ===========================================================================
 // Organization Role
 // ===========================================================================
-export interface OrganizationRoleDocument extends Document {
-    user: UserDocument,
-    org: OrganizationDocument,
-    role: string
+export interface OrganizationRoleDocument extends Document, api.OrganizationRole {
 }
 
 export const OrganizationRoleSchema = new Schema({
@@ -152,21 +132,7 @@ export const OrganizationDataSharingTemplate: OrganizationDataSharingTemplateMod
 // ===========================================================================
 // Organization Data Sharing Agreement
 // ===========================================================================
-export enum OrganizationDataSharingAgreementState {
-    INACTIVE = 'INACTIVE',
-    ACTIVE = 'ACTIVE',
-    EXPIRED = 'EXPIRED',
-    CANCELLED = 'CANCELLED'
-}
-
-export interface OrganizationDataSharingAgreementDocument extends Document {
-    name: string,
-    producer: OrganizationDocument,
-    consumer: OrganizationDocument,
-    commenceDate: Date,
-    expirationDate: Date,
-    state: OrganizationDataSharingAgreementState,
-    template: OrganizationDataSharingTemplateDocument
+export interface OrganizationDataSharingAgreementDocument extends Document, api.OrganizationDataSharingAgreement {
 }
 
 export const OrganizationDataSharingAgreementSchema = new Schema({
@@ -175,8 +141,16 @@ export const OrganizationDataSharingAgreementSchema = new Schema({
     consumer: { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
     commenceDate: { type: Date, required: true },
     expirationDate: { type: Date, required: true },
-    state: { type: String, required: true, enum: enumValues(OrganizationDataSharingAgreementState) },
-    template: { type: Schema.Types.ObjectId, ref: 'OrganizationDataSharingTemplate', required: true }
+    state: { type: String, required: true, enum: enumValues(api.OrganizationDataSharingAgreementState) },
+    template: { type: Schema.Types.ObjectId, ref: 'OrganizationDataSharingTemplate', required: true },
+    datastreams: [{
+        name: { type: String, required: true },
+        id: { type: Number, required: false },
+        count: { type: Number, required: false },
+        lastPhenomenonTime: { type: Date, required: false },
+        lastSuccessfulTime: { type: Date, required: false },
+        lastAttemptTime: { type: Date, required: false }
+    }]
 }, {
     timestamps: true,
     collection: 'organization-data-sharing-agreement'
@@ -193,11 +167,7 @@ export const OrganizationDataSharingAgreement: OrganizationDataSharingAgreementM
 // ===========================================================================
 // Organization Sensor Things Status
 // ===========================================================================
-
-
-export interface OrganizationSensorThingsStatusDocument extends Document {
-    org: OrganizationDocument,
-    reachable: boolean
+export interface OrganizationSensorThingsStatusDocument extends Document, api.OrganizationSensorThingsStatus {
 }
 
 export const OrganizationSensorThingsStatusSchema = new Schema({

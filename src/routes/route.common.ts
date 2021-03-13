@@ -1,10 +1,13 @@
-import { NextFunction, Request, Response } from "express";
+import { Application as ExpressApplication, Router as ExpressRouter, NextFunction, Request, Response } from "express";
 import { Logger, getLogger } from "../utils/logger";
 import { EntityNotFoundError, ThingBookHttpError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";
 import { sha256 } from "../utils";
-import { ResourceListOptions } from "../models/options";
+import { ListQueryOptions } from "../models/options";
 import R = require('ramda');
+import * as core from 'express-serve-static-core';
+import { Configuration } from "../config";
+import { container } from "tsyringe";
 
 export class ExpressValidationError extends ThingBookHttpError {
     constructor(error: any) {
@@ -16,13 +19,43 @@ export class ExpressValidationError extends ThingBookHttpError {
 
 export abstract class AbstractRoute {
     protected logger: Logger;
+    protected config: Configuration;
+    protected children: AbstractRoute[] = [];
+    protected router: ExpressRouter = ExpressRouter();
 
     constructor(routeName: string) {
         this.logger = getLogger(routeName);
+        this.config = container.resolve("Configuration");
     }
 
-    protected getListOptions(req: Request): ResourceListOptions {
-        return new ResourceListOptions({
+    public addChild(child: AbstractRoute) {
+        this.children.push(child);
+    }
+
+    public configure(app: ExpressApplication): void {
+        // this.logger.silly('configure');
+
+        this.initialize(app);
+        for (let c of this.children) {
+            c.initialize(app);
+        }
+
+        this.addRoutes(app);
+        for (let c of this.children) {
+            c.addRoutes(this.router);
+        }
+    }
+
+    protected initialize(app: ExpressApplication): void {
+        // this.logger.silly('initialize');
+    }
+
+    protected addRoutes(parent: core.Router) {
+        // this.logger.silly('addRoutes');
+    }
+
+    protected getListOptions(req: Request): ListQueryOptions {
+        return new ListQueryOptions({
             offset: +R.pathOr(0, ['query', 'offset'], req),
             limit: +R.pathOr(9999, ['query', 'limit'], req)
         });

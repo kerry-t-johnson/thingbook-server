@@ -1,14 +1,14 @@
 import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRoleDocument, OrganizationSensorThingsStatusDocument } from '../models/organization.model';
-import { ResourceListOptions } from '../models/options';
+import { ListQueryOptions } from '../models/options';
 import { ClientSession } from 'mongoose';
 
-export { ResourceListOptions };
+export { ListQueryOptions as ListQueryOptions };
 
 export interface OrganizationService {
 
     // Organization
     findOrganization: (idOrName: string | number) => Promise<OrganizationDocument>;
-    listOrganizations: (options?: ResourceListOptions) => Promise<OrganizationDocument[]>;
+    listOrganizations: (options?: ListQueryOptions) => Promise<OrganizationDocument[]>;
     createOrganization: (org: OrganizationDocument, session?: ClientSession) => Promise<OrganizationDocument>;
 
     // Organization Role
@@ -17,7 +17,7 @@ export interface OrganizationService {
     // Organization Data Sharing Template
     listOrganizationDataSharingTemplates: (
         org: OrganizationDocument,
-        options?: ResourceListOptions) => Promise<OrganizationDataSharingTemplateDocument[]>;
+        options?: ListQueryOptions) => Promise<OrganizationDataSharingTemplateDocument[]>;
 
     createOrganizationDataSharingTemplate: (
         template: OrganizationDataSharingTemplateDocument,
@@ -26,7 +26,7 @@ export interface OrganizationService {
     // Organization Data Sharing Agreement
     listOrganizationDataSharingAgreements: (
         org: OrganizationDocument,
-        options?: ResourceListOptions) => Promise<OrganizationDataSharingAgreementDocument[]>;
+        options?: ListQueryOptions) => Promise<OrganizationDataSharingAgreementDocument[]>;
 
     createOrganizationDataSharingAgreement: (
         agreement: OrganizationDataSharingAgreementDocument,

@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { container } from "tsyringe";
+import { container, instanceCachingFactory } from "tsyringe";
 import { Configuration } from "./config";
 import { OrganizationServiceImpl } from "./services/organization.service.impl";
 import { UserServiceImpl } from "./services/user.service.impl";
@@ -8,11 +8,16 @@ import { DataSharingServiceImpl } from "./services/data-sharing.service.impl";
 import { Database } from "./utils/database.utils";
 import Agenda from "agenda";
 import { ThingBookError } from "./utils/error.utils";
+import { EventService } from './services/event-service';
+import { OrganizationManager } from "./business/organization.manager";
+import { SocketService } from './services/socket.service';
 
 export class DependencyInjection {
     private static config: Configuration = new Configuration();
     private static db: Database | undefined;
     private static agenda: Agenda | undefined;
+    private static es: EventService | undefined;
+    private static io: SocketService | undefined;
 
     public static async initialize() {
         if (DependencyInjection.db) {
@@ -38,9 +43,16 @@ export class DependencyInjection {
 
         container.register("agenda", { useValue: DependencyInjection.agenda });
 
+        // Dependency Injection - Event Service
+        DependencyInjection.es = new EventService();
+        container.register("EventService", { useValue: DependencyInjection.es });
+
+        DependencyInjection.io = new SocketService();
+        container.register("SocketService", { useValue: DependencyInjection.io });
+
         // Dependency Injection - Organization (Service, Manager)
         container.register("OrganizationService", { useClass: OrganizationServiceImpl });
-        container.register("OrganizationManager", { useClass: OrganizationManagerImpl });
+        container.register("OrganizationManager", { useFactory: instanceCachingFactory<OrganizationManager>((c) => c.resolve(OrganizationManagerImpl)) });
 
         // Dependency Injection - User (Model, Service)
         container.register("UserService", { useClass: UserServiceImpl });

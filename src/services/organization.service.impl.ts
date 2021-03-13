@@ -1,4 +1,4 @@
-import { Organization, OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplate, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatus, OrganizationSensorThingsStatusDocument, ResourceListOptions } from '../models/organization.model';
+import { Organization, OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplate, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatus, OrganizationSensorThingsStatusDocument, ListQueryOptions } from '../models/organization.model';
 import { OrganizationService } from './organization.service';
 import { injectable } from 'tsyringe';
 import { AbstractService } from './service.common';
@@ -31,12 +31,12 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
         throw new ThingBookHttpError(StatusCodes.NOT_FOUND, `Unable to find Organization: ${idOrName}`);
     }
 
-    public async listOrganizations(options?: ResourceListOptions): Promise<OrganizationDocument[]> {
+    public async listOrganizations(options?: ListQueryOptions): Promise<OrganizationDocument[]> {
         return Organization.list(options);
     }
 
-    public async createOrganization(org: OrganizationDocument, session?: ClientSession): Promise<OrganizationDocument> {
-
+    public async createOrganization(org: OrganizationDocument, session?: ClientSession | null): Promise<OrganizationDocument> {
+        session = session || null;
         try {
             // Note the syntax which is used to create multiple.
             // This syntax must be used with transactions.
@@ -44,7 +44,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
             this.logger.info("Created Organization %s", org.name);
 
-            return await Organization.findOne({ domainName: org.domainName }).session(session);
+            return await Organization.findOne({ domainName: org.domainName }).session(session).orFail();
         }
         catch (error) {
             throw Database.createException("Organization", error);
@@ -59,10 +59,10 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
             this.logger.info("Created OrganizationRole: %s", orgRole);
 
             return await OrganizationRole.findOne({
-                user: orgRole.user._id,
+                user: orgRole.user?._id,
                 org: orgRole.org._id,
                 role: orgRole.role
-            }).populate('user').populate('org').session(session);
+            }).populate('user').populate('org').session(session).orFail();
         }
         catch (error) {
             throw Database.createException("OrganizationRole", error);
@@ -71,9 +71,9 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
     public async listOrganizationDataSharingTemplates(
         org: OrganizationDocument,
-        options?: ResourceListOptions): Promise<OrganizationDataSharingTemplateDocument[]> {
+        options?: ListQueryOptions): Promise<OrganizationDataSharingTemplateDocument[]> {
 
-        options = options || new ResourceListOptions();
+        options = options || new ListQueryOptions();
         return await OrganizationDataSharingTemplate.find({ org: org._id })
             .sort(options.asSortCriteria())
             .skip(options.offset)
@@ -107,9 +107,9 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
     public async listOrganizationDataSharingAgreements(
         org: OrganizationDocument,
-        options?: ResourceListOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
+        options?: ListQueryOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
 
-        options = options || new ResourceListOptions();
+        options = options || new ListQueryOptions();
         return await OrganizationDataSharingAgreement.find({ $or: [{ producer: org._id }, { consumer: org._id }] })
             .sort(options.asSortCriteria())
             .skip(options.offset)
@@ -154,6 +154,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
                         }
                     }
                 })
+                .session(session)
                 .exec();
         }
         catch (error) {

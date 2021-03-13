@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import * as faker from 'faker';
 import { UserServiceImpl } from '../../src/services/user.service.impl';
-import { UserDocument, ResourceListOptions } from '../../src/models/user.model';
+import { UserDocument, ListQueryOptions } from '../../src/models/user.model';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
 import { ThingFaker } from '../thing.faker';
@@ -72,7 +72,7 @@ describe('UserService', function () {
             await uut.createUser(testUser, faker.internet.password());
         }
 
-        const actual: UserDocument[] = await uut.listUsers(new ResourceListOptions({ limit: 1000 }));
+        const actual: UserDocument[] = await uut.listUsers(new ListQueryOptions({ limit: 1000 }));
 
         expect(actual.length).equal(testUsers.length);
     });
@@ -92,7 +92,7 @@ describe('UserService', function () {
         while (cumulative < numUsers) {
             const expectedCount = Math.min(limit, numUsers - cumulative);
 
-            const actual: UserDocument[] = await uut.listUsers(new ResourceListOptions({ offset: cumulative, limit: limit }));
+            const actual: UserDocument[] = await uut.listUsers(new ListQueryOptions({ offset: cumulative, limit: limit }));
 
             expect(actual.length).equal(expectedCount);
 

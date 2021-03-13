@@ -1,6 +1,6 @@
 
 
-export class ResourceListOptions {
+export class ListQueryOptions {
 
     public sort_field: string = '_id';
     public sort_asc: boolean = true;

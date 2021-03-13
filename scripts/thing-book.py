@@ -208,6 +208,22 @@ class OrgDataSharingTemplate(_ThingBookEntity):
             raise ItemsCreationDeferredException(self)
 
 
+class OrgDataSharingAgreement(_ThingBookEntity):
+
+    def __init__(self, data={}):
+        super().__init__('organization/{o}/agreement', data, yaml_key='org-agreement', refresh=False)
+        try:
+            self.data['producer'] = _ENTITY_REPOSITORY.getOrganization(self.data['producer']).id()
+            self.data['consumer'] = _ENTITY_REPOSITORY.getOrganization(self.data['consumer']).id()
+            self.data['template'] = _ENTITY_REPOSITORY.getOrganizationDataSharingTemplate(self.data['template']).id()
+            self.resource = self.resource.format(o = self.data['producer'])
+
+            if not self.refresh():
+                self._create()
+        except ItemNotFoundException:
+            raise ItemsCreationDeferredException(self)
+
+
 class EntityRepository(object):
 
     def __init__(self):
@@ -218,6 +234,7 @@ class EntityRepository(object):
             'ds-fragment': {},
             'ds-template': {},
             'org-template': {},
+            'org-agreement': {},
         }
     
     def entityExists(self, type, name):
@@ -246,6 +263,12 @@ class EntityRepository(object):
             return self.repo['ds-template'][name]
         except KeyError:
             raise ItemNotFoundException('ds-template', name)
+    
+    def getOrganizationDataSharingTemplate(self, name):
+        try:
+            return self.repo['org-template'][name]
+        except KeyError:
+            raise ItemNotFoundException('org-template', name)
 
     def addEntity(self, entity):
         self.logger.debug('{r} "{n}" added to repository'.format(r = entity.yaml_key,
@@ -259,6 +282,7 @@ _ENTITY_FACTORIES = {
     'ds-fragment': DataSharingFragment,
     'ds-template': DataSharingTemplate,
     'org-template': OrgDataSharingTemplate,
+    'org-agreement': OrgDataSharingAgreement,
 }
 
 _ENTITY_REPOSITORY = EntityRepository()

@@ -1,26 +1,17 @@
 import { Document, Model, Schema, model } from "mongoose";
 import { enumValues } from "../utils";
-
+import * as api from 'thingbook-api';
 
 // ===========================================================================
 // Data Sharing Fragment
 // ===========================================================================
-export enum DataSharingFragmentType {
-    AUTHORIZATION = 'AUTHORIZATION',
-    OBLIGATION = 'OBLIGATION',
-    PROHIBITION = 'PROHIBITION',
-}
-
-export interface DataSharingFragmentDocument extends Document {
-    name: string,
-    text: string,
-    type: DataSharingFragmentType
+export interface DataSharingFragmentDocument extends Document, api.DataSharingFragment {
 }
 
 export const DataSharingFragmentSchema = new Schema({
     name: { type: String, required: true, unique: true },
     text: { type: String, required: true },
-    type: { type: String, required: true, enum: enumValues(DataSharingFragmentType) }
+    type: { type: String, required: true, enum: enumValues(api.DataSharingFragmentType) }
 }, {
     timestamps: true,
     collection: 'data-sharing-fragment'
@@ -36,9 +27,8 @@ export const DataSharingFragment: DataSharingFragmentModel = model<DataSharingFr
 // ===========================================================================
 // Data Sharing Template
 // ===========================================================================
-export interface DataSharingTemplateDocument extends Document {
-    name: String,
-    fragments: DataSharingFragmentDocument[]
+export interface DataSharingTemplateDocument extends Document, api.DataSharingTemplate {
+
 }
 
 export const DataSharingTemplateSchema = new Schema({
