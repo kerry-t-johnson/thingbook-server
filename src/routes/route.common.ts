@@ -32,17 +32,17 @@ export abstract class AbstractRoute {
         this.children.push(child);
     }
 
-    public configure(app: ExpressApplication): void {
+    public async configure(app: ExpressApplication): void {
         // this.logger.silly('configure');
 
-        this.initialize(app);
+        await this.initialize(app);
         for (let c of this.children) {
-            c.initialize(app);
+            await c.initialize(app);
         }
 
-        this.addRoutes(app);
+        await this.addRoutes(app);
         for (let c of this.children) {
-            c.addRoutes(this.router);
+            await c.addRoutes(this.router);
         }
     }
 

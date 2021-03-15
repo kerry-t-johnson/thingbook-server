@@ -64,12 +64,12 @@ export function ellipsize(value: string, maxLength: number) {
         return value;
     }
 
-    const ellipseLength = 3;
-    const maxStringLength = maxLength = ellipseLength;
+    const ellipseLength = 4;
+    const maxStringLength = maxLength - ellipseLength;
     const frontLength: number = Math.floor(maxStringLength / 2);
-    const backIndex = value.length - maxStringLength - frontLength;
+    const backIndex = value.length - frontLength;
 
-    return `${value.substring(0, frontLength)}...${value.substring(backIndex)}`;
+    return `${value.substring(0, frontLength)}....${value.substring(backIndex)}`;
 }
 
 export function lstrip(value: string, strip: string) {

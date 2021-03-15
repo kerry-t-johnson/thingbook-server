@@ -2,6 +2,8 @@ thingbook:
   user:
     - name: kerry.t.johnson@gmail.com
       password: password
+      roles:
+        - admin
 
   organization:
     - name: Acadia
