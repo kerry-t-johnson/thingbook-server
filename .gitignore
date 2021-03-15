@@ -1,6 +1,7 @@
 **/*.png
 build
 doc/typedoc/**/*
+.ssl
 
 # Logs
 logs

@@ -11,6 +11,7 @@ import { ThingBookError } from "./utils/error.utils";
 import { EventService } from './services/event-service';
 import { OrganizationManager } from "./business/organization.manager";
 import { SocketService } from './services/socket.service';
+import { KeyValueRedis } from "./services/keyvalue.service.redis";
 
 export class DependencyInjection {
     private static config: Configuration = new Configuration();
@@ -59,6 +60,8 @@ export class DependencyInjection {
 
         // Dependency Injection - Data Sharing (Models, Service)
         container.register("DataSharingService", { useClass: DataSharingServiceImpl })
+
+        container.register("KeyValue", { useClass: KeyValueRedis });
 
         this.config.print();
     }

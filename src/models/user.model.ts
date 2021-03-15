@@ -15,7 +15,8 @@ export const UserSchema = new Schema({
     email: { type: String, required: true, unique: true, index: true },
     first: { type: String, required: false },
     last: { type: String, required: false },
-    profile: { type: Map, of: String }
+    roles: [{ type: String, required: false }],
+    profile: { type: Map, of: String },
 
 }, {
     timestamps: true,
@@ -54,13 +55,19 @@ UserSchema.methods.toString = function () {
 }
 
 UserSchema.methods.toJSON = function () {
-    var obj: any = this.toObject();
+    const thisObject: any = <any>this;
+    var jsonObject: any = this.toObject();
 
-    delete obj.hash;
-    delete obj.salt;
-    delete obj.password;
+    delete jsonObject.hash;
+    delete jsonObject.salt;
+    delete jsonObject.password;
+    delete jsonObject.profile;
 
-    return obj;
+    if (thisObject?.authorization) {
+        jsonObject.authorization = thisObject.authorization;
+    }
+
+    return jsonObject;
 }
 
 UserSchema.plugin(passportLocalMongoose, {
