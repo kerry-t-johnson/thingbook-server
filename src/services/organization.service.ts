@@ -12,7 +12,7 @@ export interface OrganizationService {
     createOrganization: (org: OrganizationDocument, session?: ClientSession) => Promise<OrganizationDocument>;
 
     // Organization Role
-    createOrganizationRole: (orgRole: OrganizationRoleDocument, session?: ClientSession) => Promise<OrganizationRoleDocument>;
+    createOrganizationRole: (orgRole: OrganizationRoleDocument, session?: ClientSession | null) => Promise<OrganizationRoleDocument>;
 
     // Organization Data Sharing Template
     listOrganizationDataSharingTemplates: (
@@ -21,7 +21,7 @@ export interface OrganizationService {
 
     createOrganizationDataSharingTemplate: (
         template: OrganizationDataSharingTemplateDocument,
-        session?: ClientSession) => Promise<OrganizationDataSharingTemplateDocument>;
+        session?: ClientSession | null) => Promise<OrganizationDataSharingTemplateDocument>;
 
     // Organization Data Sharing Agreement
     listOrganizationDataSharingAgreements: (
@@ -30,7 +30,7 @@ export interface OrganizationService {
 
     createOrganizationDataSharingAgreement: (
         agreement: OrganizationDataSharingAgreementDocument,
-        session?: ClientSession) => Promise<OrganizationDataSharingAgreementDocument>;
+        session?: ClientSession | null) => Promise<OrganizationDataSharingAgreementDocument>;
 
     updateSensorThingsStatus: (
         status: OrganizationSensorThingsStatusDocument,

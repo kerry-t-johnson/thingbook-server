@@ -37,7 +37,7 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
     }
 
 
-    public async createDataSharingFragment(fragment: DataSharingFragmentDocument, session?: ClientSession): Promise<DataSharingFragmentDocument> {
+    public async createDataSharingFragment(fragment: DataSharingFragmentDocument, session: ClientSession | null = null): Promise<DataSharingFragmentDocument> {
         try {
             // Note the syntax which is used to create multiple.
             // This syntax must be used with transactions.
@@ -51,7 +51,7 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
         }
     }
 
-    public async createDataSharingTemplate(template: DataSharingTemplateDocument, session?: ClientSession): Promise<DataSharingTemplateDocument> {
+    public async createDataSharingTemplate(template: DataSharingTemplateDocument, session: ClientSession | null = null): Promise<DataSharingTemplateDocument> {
         try {
             // Note the syntax which is used to create multiple.
             // This syntax must be used with transactions.
@@ -60,7 +60,8 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
 
             return await DataSharingTemplate.findOne({ name: template.name })
                 .populate('fragments')
-                .session(session);
+                .session(session)
+                .orFail();
         }
         catch (error) {
             throw Database.createException("DataSharingTemplate", error);

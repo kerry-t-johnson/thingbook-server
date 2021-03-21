@@ -13,12 +13,12 @@ export class SensorThingsHTTP {
     private logger: Logger = getLogger('SensorThingsHTTP');
     private url: string;
 
-    public static getInstance(url: string): SensorThingsHTTP {
-        let instance: SensorThingsHTTP | undefined = SensorThingsHTTP.INSTANCES[url];
+    public static getInstance(url: string | URL): SensorThingsHTTP {
+        let instance: SensorThingsHTTP | undefined = SensorThingsHTTP.INSTANCES[url.toString()];
 
         if (!instance) {
-            instance = new SensorThingsHTTP(url);
-            SensorThingsHTTP.INSTANCES[url] = instance;
+            instance = new SensorThingsHTTP(url.toString());
+            SensorThingsHTTP.INSTANCES[url.toString()] = instance;
         }
 
         return instance;

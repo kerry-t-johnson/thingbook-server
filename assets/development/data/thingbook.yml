@@ -435,7 +435,22 @@ thingbook:
           - Severability of agreement
           - Data is not warranteed
 
+  test-data:
+    mesaverde:
+      url: http://mesaverde:18080
+      files:
+        - assets/development/data/common-data.yml
+        - assets/development/data/mesaverde-data.yml
 
+    mesaverde-dynamic:
+      url: http://mesaverde:18080
+      files:
+        - assets/development/data/mesaverde-dynamic-data.yml
 
+    shenandoah:
+      url: http://mesaverde:18080
+      files:
+        - assets/development/data/common-data.yml
+        - assets/development/data/shenandoah-data.yml
 
 

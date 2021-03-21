@@ -17,7 +17,7 @@ describe('OrganizationManager', function () {
         const role: OrganizationRoleDocument = await OrganizationRole.findOne({
             user: testUser,
             org: result
-        });
+        }).orFail();
 
         expect(result.name).equal(testOrg.name);
         expect(result.verification?.method).equal(testOrg.verification.method);

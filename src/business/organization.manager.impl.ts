@@ -146,7 +146,7 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
             agreement.producer = org;
 
             // Retrieve the associated 'parent' template:
-            const template: api.OrganizationDataSharingTemplate = await OrganizationDataSharingTemplate.findById(agreement.template);
+            const template: api.OrganizationDataSharingTemplate = await OrganizationDataSharingTemplate.findById(agreement.template).orFail();
 
             // Seed the metrics
             agreement.datastreams = Array.from(template.datastreams, ds => <api.DataStreamMetrics>{ name: ds, id: 0, count: 0 });
@@ -172,7 +172,7 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
     }
 
     private async checkSensorThingsApiStatus(job: Job) {
-        const org: OrganizationDocument = await Organization.findById(job.attrs.data.org);
+        const org: OrganizationDocument = await Organization.findById(job.attrs.data?.org).orFail();
         const status: any = { org: org._id, reachable: false, lastStatus: 'Unknown' };
 
         try {
