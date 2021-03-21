@@ -7,6 +7,7 @@ import { assertIsDefined } from "../src/utils";
 import * as faker from "faker";
 import { ThingBookError } from "../src/utils/error.utils";
 import { StatusCodes } from "http-status-codes";
+import * as api from 'thingbook-api';
 
 enum SensorThingsResource {
     DATASTREAM_RESOURCE = 'Datastreams',
@@ -23,24 +24,16 @@ enum DynamicMethods {
     RANDOM_BOOLEAN = "RANDOM_BOOLEAN",
 }
 
-export interface ThingBookEntityCreationRequest {
-    url: string,
-    resource: string,
-    data: any,
-    dynamic: any,
-    createAt: Date
-}
 
-export class ThingBookEntityFactory {
+export class EntityCreationRequestFactory {
 
-    private logger: Logger = getLogger('ThingBookEntityFactory');
+    private logger: Logger = getLogger('EntityCreationRequestFactory');
 
-    constructor(private url: string) {
-
+    constructor() {
     }
 
-    public fromYamlFile(...paths: string[]): ThingBookEntityCreationRequest[] {
-        const results: ThingBookEntityCreationRequest[] = [];
+    public fromYamlFile(...paths: string[]): api.EntityCreationStatus[] {
+        const results: api.EntityCreationStatus[] = [];
 
         for (let p of paths) {
             this.logger.debug(`Reading entities from ${p}`)
@@ -54,8 +47,8 @@ export class ThingBookEntityFactory {
         return results;
     }
 
-    public fromYamlElement(element: any): ThingBookEntityCreationRequest[] {
-        const results: ThingBookEntityCreationRequest[] = [];
+    public fromYamlElement(element: any): api.EntityCreationStatus[] {
+        const results: api.EntityCreationStatus[] = [];
 
         if (typeof element === 'object' && element !== null) {
             for (let [key, value] of Object.entries(element)) {
@@ -63,7 +56,7 @@ export class ThingBookEntityFactory {
                     const resource: SensorThingsResource = toSensorThingsResource(key);
 
                     for (let v of <any[]>value) {
-                        results.push(...ThingBookEntityFactory.createRequest(this.url, resource, v));
+                        results.push(...EntityCreationRequestFactory.createRequest(resource, v));
                     }
                 }
                 catch (error) {
@@ -77,8 +70,8 @@ export class ThingBookEntityFactory {
         return results;
     }
 
-    public static createRequest(url: string, resource: string, data: any, now: Date = new Date()): ThingBookEntityCreationRequest[] {
-        const results: ThingBookEntityCreationRequest[] = [];
+    public static createRequest(resource: string, data: any, now: Date = new Date()): api.EntityCreationStatus[] {
+        const results: api.EntityCreationStatus[] = [];
 
         const repeat = data?.['sensor-things-repeat'] || { interval: 0, quantity: 1 };
         const dynamic = data?.['sensor-things-dynamic'];
@@ -88,8 +81,7 @@ export class ThingBookEntityFactory {
         delete copy['sensor-things-repeat'];
 
         for (let i = 1; i <= repeat.quantity; ++i) {
-            results.push(<ThingBookEntityCreationRequest>{
-                url: url,
+            results.push(<api.EntityCreationStatus>{
                 resource: resource,
                 data: copy,
                 dynamic: dynamic,
@@ -102,45 +94,56 @@ export class ThingBookEntityFactory {
 
 }
 
-export class ThingBookEntity {
+export class SensorThingsEntityFactory {
 
-    private logger: Logger = getLogger('ThingBookEntity');
+    private logger: Logger = getLogger('SensorThingsEntityFactory');
     private st: SensorThingsHTTP;
 
-    public constructor(private createSpec: ThingBookEntityCreationRequest) {
-        this.st = SensorThingsHTTP.getInstance(createSpec.url);
+    public constructor(url: URL | string) {
+        this.st = SensorThingsHTTP.getInstance(url);
     }
 
-    toString() {
-        return `${this.createSpec.data?.name ? this.createSpec.data.name : '<anonymous>'} (${this.createSpec.resource})`;
+    entityToString(entity: api.EntityCreationStatus, data: any) {
+        return `${data.name ? data.name : '<anonymous>'} (${entity.resource})`;
     }
 
-    async create(): Promise<number> {
+    async create(entity: api.EntityCreationStatus): Promise<api.EntityCreationStatus> {
+        const data: any = JSON.parse(entity.data);
+        const dynamic: any = entity.dynamic ? JSON.parse(entity.dynamic) : undefined;
+
+        if (entity.status == StatusCodes.SEE_OTHER || entity.status == StatusCodes.CREATED) {
+            return entity;
+        }
+
         const now: Date = new Date();
-        if (now < this.createSpec.createAt) {
-            return StatusCodes.PRECONDITION_FAILED;
+        if (entity.createAt && now < entity.createAt) {
+            entity.status = StatusCodes.PRECONDITION_FAILED;
+            return entity;
         }
 
-        if (this.createSpec.dynamic === undefined && await this.exists(this.createSpec.resource, this.createSpec.data) !== false) {
-            this.logger.silly(`${this} already exists`);
-            return StatusCodes.SEE_OTHER;
+        if (dynamic === undefined && await this.exists(entity.resource, data) !== false) {
+            this.logger.silly(`${this.entityToString(entity, data)} already exists`);
+            entity.status = StatusCodes.SEE_OTHER;
+            return entity;
         }
 
-        const populated: boolean = await this.populate();
+        const populated: boolean = await this.populate(data, dynamic);
 
         if (populated === false) {
-            this.logger.warn(`Creation of ${this} deferred...`);
-            return StatusCodes.UNPROCESSABLE_ENTITY;
+            this.logger.warn(`Creation of ${this.entityToString(entity, data)} deferred...`);
+            entity.status = StatusCodes.UNPROCESSABLE_ENTITY;
+            return entity;
         }
 
-        await this.st.post(this.createSpec.resource, this.createSpec.data);
-        this.logger.info(`Created ${this}`);
+        await this.st.post(entity.resource, data);
+        this.logger.info(`Created ${this.entityToString(entity, data)}`);
 
-        return StatusCodes.CREATED;
+        entity.status = StatusCodes.CREATED;
+        return entity;
     }
 
-    private async populate(): Promise<any> {
-        for (let [key, value] of Object.entries(this.createSpec.data)) {
+    private async populate(data: any, dynamic: any): Promise<any> {
+        for (let [key, value] of Object.entries(data)) {
             const resource: SensorThingsResource | undefined = toSensorThingsResource(key, false);
 
             if (resource && typeof (value) === 'string') {
@@ -151,14 +154,14 @@ export class ThingBookEntity {
                     return false;
                 }
 
-                this.createSpec.data[key] = refEntity;
+                data[key] = refEntity;
                 this.logger.silly(`Reference lookup successful: ${key} => ${refEntity['@iot.id']}`);
             }
         }
 
-        if (this.createSpec.dynamic) {
-            for (let [dKey, dValue] of Object.entries(this.createSpec.dynamic)) {
-                this.createSpec.data[dKey] = ThingBookEntity.dynamicValue(dValue);
+        if (dynamic) {
+            for (let [dKey, dValue] of Object.entries(dynamic)) {
+                data[dKey] = SensorThingsEntityFactory.dynamicValue(dValue);
             }
         }
 

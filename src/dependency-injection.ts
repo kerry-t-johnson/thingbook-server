@@ -6,12 +6,13 @@ import { UserServiceImpl } from "./services/user.service.impl";
 import { OrganizationManagerImpl } from "./business/organization.manager.impl";
 import { DataSharingServiceImpl } from "./services/data-sharing.service.impl";
 import { Database } from "./utils/database.utils";
-import Agenda from "agenda";
 import { ThingBookError } from "./utils/error.utils";
 import { EventService } from './services/event-service';
 import { OrganizationManager } from "./business/organization.manager";
 import { SocketService } from './services/socket.service';
 import { KeyValueRedis } from "./services/keyvalue.service.redis";
+import { DataLoaderService } from "../development/services/data-loader.service";
+import Agenda from "agenda";
 
 export class DependencyInjection {
     private static config: Configuration = new Configuration();
@@ -62,6 +63,8 @@ export class DependencyInjection {
         container.register("DataSharingService", { useClass: DataSharingServiceImpl })
 
         container.register("KeyValue", { useClass: KeyValueRedis });
+
+        container.register("DataLoaderService", { useClass: DataLoaderService });
 
         this.config.print();
     }

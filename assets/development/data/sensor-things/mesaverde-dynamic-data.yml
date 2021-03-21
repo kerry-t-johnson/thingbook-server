@@ -1,0 +1,10 @@
+Observations:
+  - Datastream: MCC-DataStream-002
+    FeatureOfInterest: Newport News City Center Fountain Plaza
+    sensor-things-dynamic:
+      phenomenonTime: CURRENT_TIME
+      result: RANDOM_BOOLEAN
+      resultTime: CURRENT_TIME
+    sensor-things-repeat:
+      interval: 5
+      quantity: 20

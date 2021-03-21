@@ -79,7 +79,7 @@
     "socket.io": "^3.1.2",
     "socket.io-client": "^3.1.2",
     "sprintf-js": "^1.1.2",
-    "thingbook-api": "^1.0.15",
+    "thingbook-api": "^1.0.25",
     "ts-custom-error": "^3.2.0",
     "tsyringe": "^4.4.0",
     "typedoc": "^0.20.22",

@@ -7,6 +7,7 @@ import * as core from 'express-serve-static-core';
 import { UserRoutes } from "./user.route";
 import { OrganizationRoutes } from "./organization.route";
 import { DataSharingRoutes } from "./data-sharing.route";
+import { DevelopmentRoutes } from "../../development/routes/development.route";
 
 export class Router extends AbstractRoute {
 
@@ -14,10 +15,11 @@ export class Router extends AbstractRoute {
         super('Router');
     }
 
-    public configure(app: ExpressApplication): void {
+    public async configure(app: ExpressApplication): Promise<void> {
         this.addChild(container.resolve<AbstractRoute>(UserRoutes));
         this.addChild(container.resolve<AbstractRoute>(OrganizationRoutes));
         this.addChild(container.resolve<AbstractRoute>(DataSharingRoutes));
+        this.addChild(container.resolve<AbstractRoute>(DevelopmentRoutes));
 
         super.configure(app);
 

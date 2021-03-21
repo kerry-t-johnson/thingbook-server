@@ -51,7 +51,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
         }
     }
 
-    public async createOrganizationRole(orgRole: OrganizationRoleDocument, session?: ClientSession): Promise<OrganizationRoleDocument> {
+    public async createOrganizationRole(orgRole: OrganizationRoleDocument, session: ClientSession | null = null): Promise<OrganizationRoleDocument> {
 
         try {
             await OrganizationRole.create([orgRole], { session: session });
@@ -86,7 +86,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
     public async createOrganizationDataSharingTemplate(
         template: OrganizationDataSharingTemplateDocument,
-        session?: ClientSession): Promise<OrganizationDataSharingTemplateDocument> {
+        session: ClientSession | null = null): Promise<OrganizationDataSharingTemplateDocument> {
 
         try {
             // Note the syntax which is used to create multiple.
@@ -98,7 +98,8 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
             return await OrganizationDataSharingTemplate.findOne({ org: template.org, template: template.template })
                 .populate('org', '-verification')
                 .populate('template')
-                .session(session);
+                .session(session)
+                .orFail();
         }
         catch (error) {
             throw Database.createException("OrganizationDataSharingTemplate", error);
@@ -132,7 +133,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
     public async createOrganizationDataSharingAgreement(
         agreement: OrganizationDataSharingAgreementDocument,
-        session?: ClientSession): Promise<OrganizationDataSharingAgreementDocument> {
+        session: ClientSession | null = null): Promise<OrganizationDataSharingAgreementDocument> {
 
         try {
             // Note the syntax which is used to create multiple.
@@ -155,6 +156,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
                     }
                 })
                 .session(session)
+                .orFail()
                 .exec();
         }
         catch (error) {

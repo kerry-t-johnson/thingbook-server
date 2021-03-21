@@ -32,7 +32,7 @@ export abstract class AbstractRoute {
         this.children.push(child);
     }
 
-    public async configure(app: ExpressApplication): void {
+    public async configure(app: ExpressApplication): Promise<void> {
         // this.logger.silly('configure');
 
         await this.initialize(app);
