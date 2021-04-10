@@ -31,7 +31,7 @@ export class UnknownDatabaseError extends ThingBookHttpError {
 
 export function assertIsValidObjectId(id: any) {
     if (!mongoose.isValidObjectId(id)) {
-        throw new ThingBookHttpError(StatusCodes.NOT_FOUND, 'The request included an invalid Object ID');
+        throw new ThingBookHttpError(StatusCodes.NOT_FOUND, `The request included an invalid Object ID: ${id}`);
     }
 }
 

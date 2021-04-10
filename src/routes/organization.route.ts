@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
 import { OrganizationService } from '../services/organization.service';
 import { inject, injectable } from 'tsyringe';
-import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, ListQueryOptions } from '../models/organization.model';
+import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationSchema } from '../models/organization.model';
 import { AbstractRoute } from './route.common';
 import { assertIsDefined } from '../utils';
 import { OrganizationManager } from '../business/organization.manager';
 import * as core from 'express-serve-static-core';
+import { PaginatedResults, PaginationOptions } from '../../../thingbook-api/src/metadata.api';
+
 
 @injectable()
 export class OrganizationRoutes extends AbstractRoute {
@@ -14,6 +16,9 @@ export class OrganizationRoutes extends AbstractRoute {
         @inject("OrganizationService") private orgSvc?: OrganizationService,
         @inject("OrganizationManager") private orgMgr?: OrganizationManager) {
         super('Organization');
+
+        OrganizationSchema.virtual('links').get(this.createOrganizationLinks);
+
     }
 
     public addRoutes(parent: core.Router) {
@@ -43,9 +48,9 @@ export class OrganizationRoutes extends AbstractRoute {
         return Promise.resolve(req.orgValue);
     }
 
-    private async get(req: Request, res: Response): Promise<OrganizationDocument[]> {
+    private async get(req: Request, res: Response): Promise<PaginatedResults<OrganizationDocument>> {
         assertIsDefined(this.orgSvc);
-        const options: ListQueryOptions = this.getListOptions(req);
+        const options: PaginationOptions = this.getListOptions(req);
         return await this.orgSvc.listOrganizations(options);
     }
 
@@ -83,6 +88,20 @@ export class OrganizationRoutes extends AbstractRoute {
             req.orgValue,
             <OrganizationDataSharingAgreementDocument>req.body
         );
+    }
+
+    createOrganizationLinks() {
+        return OrganizationRoutes.createLinks('organization', this);
+    }
+
+    private static createLinks(type: string, obj: any) {
+        const selfUrl = `http://localhost:3000/api/v1/${type}/${obj._id}`
+
+        return {
+            self: { href: selfUrl },
+            template: { title: 'Data Sharing Templates', href: `${selfUrl}/template` },
+            agreement: { title: 'Data Sharing Agreements', href: `${selfUrl}/agreement` }
+        }
     }
 
 }

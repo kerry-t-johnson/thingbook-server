@@ -3,7 +3,7 @@ import { Logger, getLogger } from "../utils/logger";
 import { EntityNotFoundError, ThingBookHttpError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";
 import { sha256 } from "../utils";
-import { ListQueryOptions } from "../models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import R = require('ramda');
 import * as core from 'express-serve-static-core';
 import { Configuration } from "../config";
@@ -54,10 +54,10 @@ export abstract class AbstractRoute {
         // this.logger.silly('addRoutes');
     }
 
-    protected getListOptions(req: Request): ListQueryOptions {
-        return new ListQueryOptions({
-            offset: +R.pathOr(0, ['query', 'offset'], req),
-            limit: +R.pathOr(9999, ['query', 'limit'], req)
+    protected getListOptions(req: Request): PaginationOptions {
+        return new PaginationOptions({
+            page_number: +R.pathOr(0, ['query', 'page_number'], req),
+            page_size: +R.pathOr(50, ['query', 'page_size'], req)
         });
     }
 
@@ -91,7 +91,14 @@ export abstract class AbstractRoute {
         try {
             this.validate(req);
             const result = await func(req, res);
-            res.status(200).json(result).end();
+
+            const status = req.method == 'POST' ? StatusCodes.CREATED : StatusCodes.OK;
+
+            if (status == StatusCodes.CREATED && result?._id) {
+                res.header('Location', req.getUrl(result._id).toString());
+            }
+
+            res.status(status).json(result).end();
         }
         catch (error) {
             next(error);

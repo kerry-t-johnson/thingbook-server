@@ -33,6 +33,16 @@ export class Router extends AbstractRoute {
         }
         app.use(express.json());
         app.use(morgan("tiny", { stream: { write: this.logRequest.bind(this) } }));
+        app.use(function (req, res, next) {
+            req.getUrl = function (p?: string) {
+                let path = req.originalUrl;
+                if (p) {
+                    path = `${path}/${p}`;
+                }
+                return new URL(path, `${req.protocol}://${req.get('host')}`);
+            }
+            return next();
+        });
     }
 
     protected addRoutes(parent: core.Router): void {

@@ -1,4 +1,4 @@
-import { Organization, OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplate, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatus, OrganizationSensorThingsStatusDocument, ListQueryOptions } from '../models/organization.model';
+import { Organization, OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplate, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRole, OrganizationRoleDocument, OrganizationSensorThingsStatus, OrganizationSensorThingsStatusDocument } from '../models/organization.model';
 import { OrganizationService } from './organization.service';
 import { injectable } from 'tsyringe';
 import { AbstractService } from './service.common';
@@ -6,6 +6,7 @@ import { assertIsValidObjectId, Database } from '../utils/database.utils';
 import { ClientSession } from 'mongoose';
 import { ThingBookHttpError } from '../utils/error.utils';
 import { StatusCodes } from 'http-status-codes';
+import { PaginatedResults, PaginationOptions } from '../../../thingbook-api/src/metadata.api';
 
 @injectable()
 export class OrganizationServiceImpl extends AbstractService implements OrganizationService {
@@ -31,7 +32,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
         throw new ThingBookHttpError(StatusCodes.NOT_FOUND, `Unable to find Organization: ${idOrName}`);
     }
 
-    public async listOrganizations(options?: ListQueryOptions): Promise<OrganizationDocument[]> {
+    public async listOrganizations(options?: PaginationOptions): Promise<PaginatedResults<OrganizationDocument>> {
         return Organization.list(options);
     }
 
@@ -71,13 +72,13 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
     public async listOrganizationDataSharingTemplates(
         org: OrganizationDocument,
-        options?: ListQueryOptions): Promise<OrganizationDataSharingTemplateDocument[]> {
+        options?: PaginationOptions): Promise<OrganizationDataSharingTemplateDocument[]> {
 
-        options = options || new ListQueryOptions();
+        options = options || new PaginationOptions();
         return await OrganizationDataSharingTemplate.find({ org: org._id })
             .sort(options.asSortCriteria())
-            .skip(options.offset)
-            .limit(options.limit)
+            .skip(options.page_number * options.page_size)
+            .limit(options.page_size)
             .populate('org', '-verification')
             .populate('template')
             .exec();
@@ -108,13 +109,13 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
     public async listOrganizationDataSharingAgreements(
         org: OrganizationDocument,
-        options?: ListQueryOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
+        options?: PaginationOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
 
-        options = options || new ListQueryOptions();
+        options = options || new PaginationOptions();
         return await OrganizationDataSharingAgreement.find({ $or: [{ producer: org._id }, { consumer: org._id }] })
             .sort(options.asSortCriteria())
-            .skip(options.offset)
-            .limit(options.limit)
+            .skip(options.page_number * options.page_size)
+            .limit(options.page_size)
             .populate('producer', '-verification')
             .populate('consumer', '-verification')
             .populate({

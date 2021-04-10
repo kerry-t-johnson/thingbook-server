@@ -1,10 +1,9 @@
-import { ListQueryOptions } from './options';
+import { PaginatedResults, PaginationOptions, PaginationStatus } from '../../../thingbook-api/src/metadata.api';
 import { Schema, model, Model, Document } from 'mongoose';
 import { DataSharingTemplateDocument } from './data-sharing.model';
 import { enumValues } from '../utils';
 import * as api from 'thingbook-api';
-
-export { ListQueryOptions };
+const MaskData = require('maskdata');
 
 // ===========================================================================
 // Organization
@@ -42,32 +41,47 @@ export const OrganizationSchema = new Schema({
     parent: { type: Schema.Types.ObjectId, ref: 'Organization' },
     verification: new Schema({
         method: { type: String, required: true, enum: DomainVerificationMethods },
-        token: { type: String, required: true },
+        token: { type: String, required: true, get: MaskData.maskPassword },
         user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
         verified: { type: Boolean, required: true, default: false },
-    })
+    }, { toJSON: { getters: true } })
 }, {
     timestamps: true,
-    collection: 'organization'
+    collection: 'organization',
+    toJSON: { virtuals: true, getters: true },
 });
 
 export interface OrganizationModel extends Model<OrganizationDocument> {
-    list: (options?: ListQueryOptions) => Promise<OrganizationDocument[]>;
+    list: (options?: PaginationOptions) => Promise<PaginatedResults<OrganizationDocument>>;
 }
 
-OrganizationSchema.statics.list = async function (options?: ListQueryOptions): Promise<OrganizationDocument[]> {
-    options = options || new ListQueryOptions();
+OrganizationSchema.statics.list = async function (options?: PaginationOptions): Promise<PaginatedResults<OrganizationDocument>> {
+    const localPagination = options ?? new PaginationOptions();
 
-    return this.find()
-        .sort(options.asSortCriteria())
-        .skip(options.offset)
-        .limit(options.limit)
-        .exec();
+    return new Promise<PaginatedResults<OrganizationDocument>>(async (resolve, reject) => {
+        try {
+            const results: OrganizationDocument[] = await this.find()
+                .sort(localPagination.asSortCriteria())
+                .skip(localPagination.page_number * localPagination.page_size)
+                .limit(localPagination.page_size)
+                .exec();
+
+            const totalCount: number = await this.estimatedDocumentCount();
+
+            resolve(new PaginatedResults<OrganizationDocument>(results, PaginationStatus.fromPaginationOptions(localPagination, totalCount)));
+        }
+        catch (error) {
+            reject(error);
+        }
+    });
+
 }
+
 
 OrganizationSchema.methods.toString = function () {
     return `${this.name} (${this.domainName})`;
 }
+
 
 export const Organization: OrganizationModel = model<OrganizationDocument, OrganizationModel>('Organization', OrganizationSchema);
 
@@ -89,12 +103,13 @@ export const OrganizationRoleSchema = new Schema({
 
 OrganizationRoleSchema.index({ user: 1, org: 1, role: 1 }, { unique: true });
 
-OrganizationSchema.methods.toString = function () {
+OrganizationRoleSchema.methods.toString = function () {
     return `${this.user} is ${this.role} for ${this.org}`;
 }
 
 export interface OrganizationRoleModel extends Model<OrganizationRoleDocument> {
 }
+
 export const OrganizationRole: OrganizationRoleModel = model<OrganizationRoleDocument, OrganizationRoleModel>('OrganizationRole', OrganizationRoleSchema);
 
 

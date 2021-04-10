@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import { OrganizationDocument, ListQueryOptions } from '../../src/models/organization.model';
+import { OrganizationDocument, PaginationOptions } from '../../src/models/organization.model';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
 import { ThingFaker } from '../thing.faker';
@@ -66,7 +66,7 @@ describe('OrganizationService', function () {
             await uut.createOrganization(testOrg);
         }
 
-        const actual: OrganizationDocument[] = await uut.listOrganizations(new ListQueryOptions({ limit: 1000 }));
+        const actual: OrganizationDocument[] = await uut.listOrganizations(new PaginationOptions({ page_size: 1000 }));
 
         expect(actual.length).equal(testOrgs.length);
     });
@@ -86,7 +86,7 @@ describe('OrganizationService', function () {
         while (cumulative < numOrganizations) {
             const expectedCount = Math.min(limit, numOrganizations - cumulative);
 
-            const actual: OrganizationDocument[] = await uut.listOrganizations(new ListQueryOptions({ offset: cumulative, limit: limit }));
+            const actual: OrganizationDocument[] = await uut.listOrganizations(new PaginationOptions({ page_number: cumulative, page_size: limit }));
 
             expect(actual.length).equal(expectedCount);
 

@@ -1,0 +1,279 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: elasticsearch-svc
+  namespace: kube-system
+  labels:
+    k8s-app: elasticsearch
+
+
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: elasticsearch
+  labels:
+    k8s-app: elasticsearch
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - endpoints
+      - namespaces
+      - nodes
+      - pods
+      - replicasets
+      - services
+    verbs:
+      - get
+      - list
+      - watch
+
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: kube-system
+  name: elasticsearch
+  labels:
+    k8s-app: elasticsearch
+subjects:
+  - kind: ServiceAccount
+    name: elasticsearch-svc
+    namespace: kube-system
+roleRef:
+  kind: ClusterRole
+  name: elasticsearch
+  apiGroup: rbac.authorization.k8s.io
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: kube-system
+  labels:
+    k8s-app: elasticsearch
+spec:
+  ports:
+    - port: 9200
+      protocol: TCP
+      targetPort: elastic-http
+      name: elastic-http
+    - port: 9300
+      protocol: TCP
+      targetPort: elastic-trnsprt
+      name: elastic-trnsprt
+  selector:
+    k8s-app: elasticsearch
+
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: elasticsearch
+  namespace: kube-system
+  labels:
+    k8s-app: elasticsearch
+spec:
+  serviceName: elasticsearch
+  replicas: 2
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      k8s-app: elasticsearch
+  template:
+    metadata:
+      labels:
+        k8s-app: elasticsearch
+    spec:
+      serviceAccountName: elasticsearch-svc
+      containers:
+        - image: elasticsearch:7.12.0
+          name: elasticsearch
+          ports:
+            - containerPort: 9200
+              name: elastic-http
+              protocol: TCP
+            - containerPort: 9300
+              name: elastic-trnsprt
+              protocol: TCP
+          volumeMounts:
+            - name: elasticsearch-pv
+              mountPath: /data
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name:  discovery.seed_hosts
+              value: "elasticsearch-0.elasticsearch,elasticsearch-1.elasticsearch"
+            - name: cluster.initial_master_nodes
+              value: "elasticsearch-0,elasticsearch-1"
+      volumes:
+        - name: elasticsearch-pv
+          emptyDir: {}
+      initContainers:
+        - image: alpine:3.6
+          command: ["/sbin/sysctl", "-w", "vm.max_map_count=262144"]
+          name: elasticsearch-init
+          securityContext:
+            privileged: true
+
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: filebeat-config
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+data:
+  filebeat.yml: |-
+    filebeat.inputs:
+      - type: container
+        paths:
+          - /var/log/containers/*.log
+        processors:
+          - add_kubernetes_metadata:
+              host: ${NODE_NAME}
+              matchers:
+                - logs_path:
+                    logs_path: "/var/log/containers/"
+
+    processors:
+      - add_cloud_metadata:
+      - add_host_metadata:
+
+    output.elasticsearch:
+      hosts:
+        - elasticsearch:9200
+
+
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: filebeat
+  namespace: kube-system
+  labels:
+    k8s-app: filebeat
+spec:
+  selector:
+    matchLabels:
+      k8s-app: filebeat
+  template:
+    metadata:
+      labels:
+        k8s-app: filebeat
+    spec:
+      serviceAccountName: elasticsearch-svc
+      terminationGracePeriodSeconds: 30
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: filebeat
+          image: docker.elastic.co/beats/filebeat:7.12.0
+          args: [ "-c", "/etc/filebeat.yml", "-e", ]
+          env:
+            - name: ELASTICSEARCH_HOST
+              value: elasticsearch
+            - name: ELASTICSEARCH_PORT
+              value: "9200"
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+          securityContext:
+            runAsUser: 0
+          resources:
+            limits:
+              memory: 200Mi
+            requests:
+              cpu: 100m
+              memory: 100Mi
+          volumeMounts:
+            - name: config
+              mountPath: /etc/filebeat.yml
+              readOnly: true
+              subPath: filebeat.yml
+            - name: data
+              mountPath: /usr/share/filebeat/data
+            - name: var-lib-docker-containers
+              mountPath: /var/lib/docker/containers
+              readOnly: true
+            - name: var-log
+              mountPath: /var/log
+              readOnly: true
+      volumes:
+        - name: config
+          configMap:
+            defaultMode: 0640
+            name: filebeat-config
+        - name: var-lib-docker-containers
+          hostPath:
+            path: /var/lib/docker/containers
+        - name: var-log
+          hostPath:
+            path: /var/log
+        # data folder stores a registry of read status for all files, so we don't send everything again on a Filebeat pod restart
+        - name: data
+          hostPath:
+            # When filebeat runs as non-root user, this directory needs to be writable by group (g+w).
+            path: /var/lib/filebeat-data
+            type: DirectoryOrCreate
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: kube-system
+  labels:
+    k8s-app: kibana
+    kubernetes.io/name: "Kibana"
+spec:
+  type: NodePort
+  ports:
+    - port: 5601
+      protocol: TCP
+      targetPort: kibana-ui
+  selector:
+    k8s-app: kibana-logging
+
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: kube-system
+  labels:
+    k8s-app: kibana
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: kibana
+  template:
+    metadata:
+      labels:
+        k8s-app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:7.12.0
+        env:
+          - name: ELASTICSEARCH_URL
+            value: http://elasticsearch:9200
+        ports:
+        - containerPort: 5601
+          name: kibana-ui
+          protocol: TCP

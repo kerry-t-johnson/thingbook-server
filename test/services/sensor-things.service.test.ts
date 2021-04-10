@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { ListQueryOptions } from "../../src/models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { SensorThingsHTTP, SensorThingsMQTT } from "../../src/services/sensor-things.service";
 
 function sleep(ms: number) {
@@ -47,7 +47,7 @@ describe('SensorThings', function () {
             // Example: http://foo/v1.0/Datastreams(1)/Observations
             const uut: SensorThingsHTTP = SensorThingsHTTP.getInstance(httpUrl);
 
-            let query = new ListQueryOptions({ limit: 5 });
+            let query = new PaginationOptions({ limit: 5 });
             const data = await uut.list('Observations', query);
 
             expect(data.length).equal(query.limit);

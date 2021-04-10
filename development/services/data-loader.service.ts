@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Error } from "mongoose";
 import * as api from "thingbook-api/lib";
 import { inject, injectable } from "tsyringe";
-import { ListQueryOptions } from "../../src/models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { AbstractService } from "../../src/services/service.common";
 import { assertIsDefined } from "../../src/utils";
 import { DataLoadRequest, DataLoadRequestDocument, EntityCreationStatusDocument } from "../models/data-load.model";
@@ -19,7 +19,7 @@ export class DataLoaderService extends AbstractService {
         this.agenda.define('sensor-things-data-load-job', this.onSensorThingsDataLoadTimeout.bind(this));
     }
 
-    public async listSenorThingsDataLoads(options: ListQueryOptions): Promise<DataLoadRequestDocument[]> {
+    public async listSenorThingsDataLoads(options: PaginationOptions): Promise<DataLoadRequestDocument[]> {
         return DataLoadRequest.list(options);
     }
 

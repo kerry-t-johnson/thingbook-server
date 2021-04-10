@@ -1,7 +1,7 @@
 import { ClientSession } from "mongoose";
 import { injectable } from "tsyringe";
 import { DataSharingFragment, DataSharingFragmentDocument, DataSharingTemplate, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { ListQueryOptions } from "../models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument } from "../models/organization.model";
 import { Database } from "../utils/database.utils";
 import { DataSharingService } from "./data-sharing.service";
@@ -14,23 +14,23 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
         super("DataSharing")
     }
 
-    public async listDataSharingFragments(options?: ListQueryOptions): Promise<DataSharingFragmentDocument[]> {
+    public async listDataSharingFragments(options?: PaginationOptions): Promise<DataSharingFragmentDocument[]> {
 
-        options = options || new ListQueryOptions();
+        options = options || new PaginationOptions();
 
         return DataSharingFragment.find()
             .sort(options.asSortCriteria())
-            .skip(options.offset)
+            .skip(options.page_number)
             .limit(options.limit)
             .exec();
     }
 
-    public async listDataSharingTemplates(options?: ListQueryOptions): Promise<DataSharingTemplateDocument[]> {
-        options = options || new ListQueryOptions();
+    public async listDataSharingTemplates(options?: PaginationOptions): Promise<DataSharingTemplateDocument[]> {
+        options = options || new PaginationOptions();
 
         return DataSharingTemplate.find()
             .sort(options.asSortCriteria())
-            .skip(options.offset)
+            .skip(options.page_number)
             .limit(options.limit)
             .populate('fragments')
             .exec();
@@ -68,12 +68,12 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
         }
     }
 
-    public async listDataSharingAgreements(options?: ListQueryOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
-        options = options || new ListQueryOptions();
+    public async listDataSharingAgreements(options?: PaginationOptions): Promise<OrganizationDataSharingAgreementDocument[]> {
+        options = options || new PaginationOptions();
 
         return await OrganizationDataSharingAgreement.find()
             .sort(options.asSortCriteria())
-            .skip(options.offset)
+            .skip(options.page_number)
             .limit(options.limit)
             .populate('producer', '-verification -sensorThingsAPI')
             .populate('consumer', '-verification -sensorThingsAPI')

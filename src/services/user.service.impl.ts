@@ -3,8 +3,9 @@ import { User, UserDocument } from "../models/user.model";
 import { Database } from "../utils/database.utils";
 import { ThingBookHttpError } from "../utils/error.utils";
 import { AbstractService } from "./service.common";
-import { ListQueryOptions, UserService } from "./user.service";
+import { UserService } from "./user.service";
 import { StatusCodes } from 'http-status-codes';
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 
 @injectable()
 export class UserServiceImpl extends AbstractService implements UserService {
@@ -13,7 +14,7 @@ export class UserServiceImpl extends AbstractService implements UserService {
         super("UserService");
     }
 
-    public async listUsers(options?: ListQueryOptions): Promise<UserDocument[]> {
+    public async listUsers(options?: PaginationOptions): Promise<UserDocument[]> {
         return User.list(options);
     }
 
