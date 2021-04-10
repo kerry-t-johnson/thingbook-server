@@ -19,7 +19,7 @@ metadata:
 # ============================================================================
 # ServiceAccount: thingbook-svc
 # ----------------------------------------------------------------------------
-# Service accounts provide an identify (and role) for processes within a
+# Service accounts provide an identity (and role) for processes within a
 # Kubernetes pod.
 #
 # In this case, we are creating a Service Account in order to give the Pod
@@ -37,7 +37,8 @@ metadata:
 # ClusterRoleBinding: thingbook-svc -to- cluster-admin
 # ----------------------------------------------------------------------------
 # A Cluster Role has permissions at the cluster level (vice within a
-# namespace).
+# namespace).  A Cluster Role Binding allocates a Cluster Role to a Subject
+# (such as a ServiceAccount).
 #
 # Here, we give thingbook-svc ServiceAccount the cluster-admin Cluster Role.
 #

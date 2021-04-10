@@ -1,4 +1,10 @@
 ---
+# ============================================================================
+# ServiceAccount: elasticsearch-svc
+# ----------------------------------------------------------------------------
+# Service accounts provide an identity (and role) for processes within a
+# Kubernetes pod.
+# ============================================================================
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -9,6 +15,12 @@ metadata:
 
 
 ---
+# ============================================================================
+# ClusterRole: elasticsearch
+# ----------------------------------------------------------------------------
+# A Cluster Role has permissions at the cluster level (vice within a
+# namespace).
+# ============================================================================
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -32,6 +44,13 @@ rules:
 
 
 ---
+# ============================================================================
+# ClusterRoleBinding: elasticsearch-svc -to- elasticsearch
+# ----------------------------------------------------------------------------
+# A Cluster Role has permissions at the cluster level (vice within a
+# namespace).  A Cluster Role Binding allocates a Cluster Role to a Subject
+# (such as a ServiceAccount).
+# ============================================================================
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -50,6 +69,11 @@ roleRef:
 
 
 ---
+# ============================================================================
+# Service: elasticsearch
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+# ============================================================================
 apiVersion: v1
 kind: Service
 metadata:
@@ -72,6 +96,13 @@ spec:
 
 
 ---
+# ============================================================================
+# StatefulSet: elasticsearch
+# ----------------------------------------------------------------------------
+# A StatefulSet manages a deployment of Pods and provides guarantees about
+# the ordering and uniqueness of the Pods.  For example, the Pods are named
+# 0, 1, ... n-1 and will be brought up in that order.
+# ============================================================================
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -127,6 +158,12 @@ spec:
 
 
 ---
+# ============================================================================
+# ConfigMap: filebeat-config
+# ----------------------------------------------------------------------------
+# A ConfigMap is one or more configurations which may be applied to elements
+# within a Cluster.
+# ============================================================================
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -157,6 +194,14 @@ data:
 
 
 ---
+# ============================================================================
+# DaemonSet: filebeat
+# ----------------------------------------------------------------------------
+# A DaemonSet executes on every Node within a Cluster.
+#
+# In this case, we want Filebeat to execute on every node in order to collect
+# ALL logs and send them to Elasticsearch
+# ============================================================================
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
@@ -231,6 +276,11 @@ spec:
 
 
 ---
+# ============================================================================
+# Service: kibana
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+# ============================================================================
 apiVersion: v1
 kind: Service
 metadata:
@@ -250,6 +300,13 @@ spec:
 
 
 ---
+# ============================================================================
+# Deployment: kibana
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+# ============================================================================
 apiVersion: apps/v1
 kind: Deployment
 metadata:
