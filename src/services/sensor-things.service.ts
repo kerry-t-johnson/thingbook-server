@@ -2,7 +2,7 @@ import { Logger } from "winston";
 import { getLogger } from "../utils/logger";
 import axios from "axios";
 import { ThingBookError, ThingBookHttpError } from "../utils/error.utils";
-import { ListQueryOptions } from "../models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { MqttClient, connect as MqttConnect } from 'mqtt';
 import { StatusCodes } from "http-status-codes";
 
@@ -44,14 +44,14 @@ export class SensorThingsHTTP {
         return result.data;
     }
 
-    public async list<T>(resource?: string, query?: ListQueryOptions): Promise<T[]> {
-        query = query || new ListQueryOptions();
+    public async list<T>(resource?: string, query?: PaginationOptions): Promise<T[]> {
+        query = query || new PaginationOptions();
 
         // sensor-things uses 'id' vice '_id':
         query.sort_field = query.sort_field == '_id' ? 'id' : query.sort_field;
 
         const baseUrl = resource ? `${this.url}/${resource}` : this.url;
-        const url: string = `${baseUrl}?\$orderby=${query.sort_field}%20${query.sort_asc ? 'asc' : 'desc'}&\$top=${query.limit}&\$skip=${query.offset}`;
+        const url: string = `${baseUrl}?\$orderby=${query.sort_field}%20${query.sort_asc ? 'asc' : 'desc'}&\$top=${query.page_size}&\$skip=${query.page_number}`;
         this.logger.silly(url);
 
         return new Promise(async function (resolve, reject) {
@@ -68,7 +68,7 @@ export class SensorThingsHTTP {
 
     public async search(name: string, resource: string) {
         this.logger.debug(`Searching for '${resource}' named '${name}'`);
-        let query = new ListQueryOptions();
+        let query = new PaginationOptions();
 
         while (true) {
             const items: any[] = await this.list(resource, query);
@@ -79,11 +79,11 @@ export class SensorThingsHTTP {
                 }
             }
 
-            if (items.length < query.limit) {
+            if (items.length < query.page_size) {
                 throw new ThingBookHttpError(StatusCodes.NOT_FOUND, `Unable to find ${resource} with name '${name}'`);
             }
 
-            query.offset += query.limit;
+            query.page_number += query.page_size;
         }
     }
 

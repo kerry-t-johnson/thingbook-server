@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { ListQueryOptions } from "../models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { DataSharingService } from "../services/data-sharing.service";
 import { assertIsDefined } from "../utils";
 import { AbstractRoute } from "./route.common";
@@ -26,7 +26,7 @@ export class DataSharingRoutes extends AbstractRoute {
     private async getFragments(req: Request, res: Response) {
         assertIsDefined(this.dsSvc);
 
-        const options: ListQueryOptions = this.getListOptions(req);
+        const options: PaginationOptions = this.getListOptions(req);
         return await this.dsSvc.listDataSharingFragments(options);
     }
 
@@ -39,7 +39,7 @@ export class DataSharingRoutes extends AbstractRoute {
     private async getTemplates(req: Request, res: Response) {
         assertIsDefined(this.dsSvc);
 
-        const options: ListQueryOptions = this.getListOptions(req);
+        const options: PaginationOptions = this.getListOptions(req);
         return await this.dsSvc.listDataSharingTemplates(options);
     }
 

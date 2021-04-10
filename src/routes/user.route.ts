@@ -1,6 +1,6 @@
 import { Application as ExpressApplication, Request, Response } from 'express';
 import { inject, injectable } from 'tsyringe';
-import { ListQueryOptions, UserService } from '../services/user.service';
+import { UserService } from '../services/user.service';
 import { User, UserDocument } from '../models/user.model';
 import passport from 'passport';
 import session from 'express-session';
@@ -15,6 +15,7 @@ import * as passportJwt from 'passport-jwt';
 import { ThingBookHttpError } from '../utils/error.utils';
 import { StatusCodes } from 'http-status-codes';
 import { KeyValueService } from '../services/keyvalue.service';
+import { PaginationOptions } from '../../../thingbook-api/src/metadata.api';
 
 @injectable()
 export class UserRoutes extends AbstractRoute {
@@ -103,8 +104,10 @@ export class UserRoutes extends AbstractRoute {
     private async get(req: Request, res: Response) {
         utils.assertIsDefined(this.userSvc);
 
-        const options: ListQueryOptions = this.getListOptions(req);
-        return await this.userSvc?.listUsers(options);
+        const options: PaginationOptions = this.getListOptions(req);
+        const users = await this.userSvc?.listUsers(options);
+        console.log(users);
+        return users;
     }
 
     private getUser(req: Request, res: Response) {

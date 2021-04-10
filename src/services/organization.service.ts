@@ -1,14 +1,12 @@
 import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRoleDocument, OrganizationSensorThingsStatusDocument } from '../models/organization.model';
-import { ListQueryOptions } from '../models/options';
+import { PaginatedResults, PaginationOptions } from '../../../thingbook-api/src/metadata.api';
 import { ClientSession } from 'mongoose';
-
-export { ListQueryOptions as ListQueryOptions };
 
 export interface OrganizationService {
 
     // Organization
     findOrganization: (idOrName: string | number) => Promise<OrganizationDocument>;
-    listOrganizations: (options?: ListQueryOptions) => Promise<OrganizationDocument[]>;
+    listOrganizations: (options?: PaginationOptions) => Promise<PaginatedResults<OrganizationDocument>>;
     createOrganization: (org: OrganizationDocument, session?: ClientSession) => Promise<OrganizationDocument>;
 
     // Organization Role
@@ -17,7 +15,7 @@ export interface OrganizationService {
     // Organization Data Sharing Template
     listOrganizationDataSharingTemplates: (
         org: OrganizationDocument,
-        options?: ListQueryOptions) => Promise<OrganizationDataSharingTemplateDocument[]>;
+        options?: PaginationOptions) => Promise<OrganizationDataSharingTemplateDocument[]>;
 
     createOrganizationDataSharingTemplate: (
         template: OrganizationDataSharingTemplateDocument,
@@ -26,7 +24,7 @@ export interface OrganizationService {
     // Organization Data Sharing Agreement
     listOrganizationDataSharingAgreements: (
         org: OrganizationDocument,
-        options?: ListQueryOptions) => Promise<OrganizationDataSharingAgreementDocument[]>;
+        options?: PaginationOptions) => Promise<OrganizationDataSharingAgreementDocument[]>;
 
     createOrganizationDataSharingAgreement: (
         agreement: OrganizationDataSharingAgreementDocument,

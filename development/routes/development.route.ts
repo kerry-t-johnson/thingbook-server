@@ -4,7 +4,7 @@ import { inject, injectable } from "tsyringe";
 import { DataLoaderService } from "../services/data-loader.service";
 import { assertIsDefined } from "../../src/utils";
 import { DataLoadRequest } from "thingbook-api/lib";
-import { ListQueryOptions } from "../../src/models/options";
+import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { Request } from "express";
 
 @injectable()
@@ -22,7 +22,7 @@ export class DevelopmentRoutes extends AbstractRoute {
 
     private async getSensorThingsTestData(req: Request, res: Response): Promise<DataLoadRequest[]> {
         assertIsDefined(this.dataLoaderSvc);
-        const options: ListQueryOptions = this.getListOptions(req);
+        const options: PaginationOptions = this.getListOptions(req);
         return this.dataLoaderSvc.listSenorThingsDataLoads(options);
     }
 

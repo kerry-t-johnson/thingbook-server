@@ -53,8 +53,12 @@ class ThingBookAPI(object):
 
     def list(self, resource, count=10, offset=0):
         url = self._url(resource)
-        response = requests.get(url, {'limit': count, 'offset': offset})
-        return response.json()
+        response = requests.get(url, {'page_size': count, 'page_number': offset})
+        results = response.json()
+        if type(results) is dict and 'items' in results:
+            return results['items']
+        else:
+            return results
 
     def search(self, resource, searchKey, searchValue):
         url = self._url(resource)
@@ -122,7 +126,7 @@ class _ThingBookEntity(object):
         except requests.exceptions.RequestException as ex:
             if hasattr(ex, 'response'):
                 self.logger.error('Server response: ' +
-                                  str(ex.response.json()))
+                                  str(ex.response))
             else:
                 self.logger.exception(ex)
     

@@ -2,10 +2,8 @@ import { Schema, model, Document, PassportLocalModel, PassportLocalDocument, Mod
 import passportLocalMongoose from 'passport-local-mongoose';
 import { isValidEmailAddress, maskEmail } from '../utils';
 import { assertIsValidObjectId } from '../utils/database.utils';
-import { ListQueryOptions } from './options';
+import { PaginationOptions } from '../../../thingbook-api/src/metadata.api';
 import * as api from 'thingbook-api';
-
-export { ListQueryOptions as ListQueryOptions }
 
 
 export interface UserDocument extends Document, api.User, PassportLocalDocument {
@@ -24,7 +22,7 @@ export const UserSchema = new Schema({
 });
 
 export interface UserModel extends Model<UserDocument>, PassportLocalModel<UserDocument> {
-    list: (options?: ListQueryOptions) => Promise<UserDocument[]>;
+    list: (options?: PaginationOptions) => Promise<UserDocument[]>;
     findByEmailOrId: (idOrEmail: string | number) => Promise<UserDocument>;
 }
 
@@ -32,12 +30,12 @@ UserSchema.path('email').validate((value: string) => {
     return isValidEmailAddress(value);
 });
 
-UserSchema.statics.list = async function (options?: ListQueryOptions): Promise<UserDocument[]> {
-    options = options || new ListQueryOptions();
+UserSchema.statics.list = async function (options?: PaginationOptions): Promise<UserDocument[]> {
+    options = options || new PaginationOptions();
     return this.find()
         .sort(options.asSortCriteria())
-        .skip(options.offset)
-        .limit(options.limit)
+        .skip(options.page_number)
+        .limit(options.page_size)
         .exec();
 }
 

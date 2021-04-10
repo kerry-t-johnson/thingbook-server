@@ -1,0 +1,92 @@
+---
+# ============================================================================
+# Service: mongo
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# The mongo Service below is "headless" in that it cannot be accessed outside
+# of the Kubernetes cluster, providing a reduced attach vector.
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: thingbook
+  labels:
+    name: mongo
+    tier: data
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+  clusterIP: None
+  selector:
+    role: mongo
+
+
+---
+# ============================================================================
+# StatefulSet: mongo
+# ----------------------------------------------------------------------------
+# A StatefulSet manages a deployment of Pods and provides guarantees about
+# the ordering and uniqueness of the Pods.  For example, the Pods are named
+# 0, 1, ... n-1 and will be brought up in that order.
+#
+# NOTE: We cannot use a Kubernetes ReplicaSet because in Kubernetes, replicas
+#       cannot be reliably distinguished from each other.
+# ============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-replica
+  namespace: thingbook
+  labels:
+    tier: data
+# --- StatefulSet specification
+spec:
+  selector:
+    matchLabels:
+      role: mongo
+  serviceName: mongo
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        role: mongo
+    # --- Pod specification (template)
+    spec:
+      terminationGracePeriodSeconds: 10
+      serviceAccount: thingbook-svc
+      containers:
+        - name: mongo
+          image: mongo:4.4.3-bionic
+          args: 
+            - "--replSet=rs0"
+            - "--bind_ip=0.0.0.0"
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-pv
+              mountPath: /data/db
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: KUBE_NAMESPACE
+              value: thingbook
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo"
+            - name: KUBERNETES_MONGO_SERVICE_NAME
+              value: mongo
+            - name: MONGODB_DATABASE
+              value: thingbook
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-pv
+      spec:
+        storageClassName: gp2
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+
