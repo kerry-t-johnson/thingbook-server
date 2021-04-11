@@ -58,3 +58,40 @@ roleRef:
   name: cluster-admin
   apiGroup: rbac.authorization.k8s.io
 
+
+---
+# ============================================================================
+# Ingress: thingbook-ingress
+# ----------------------------------------------------------------------------
+# Ingress is a collection of rules that allow inbound connections to reach the
+# endpoints defined by a backend. An Ingress can be configured to give
+# services externally-reachable urls.
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: thingbook-ingress
+spec:
+  rules:
+    - host: adfc542ccafc143b38687e4a1965b73b-99be5dfff8bc3443.elb.us-west-2.amazonaws.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: echo1
+                port:
+                  number: 80
+            path: /echo-1
+            pathType: Exact
+    - host: adfc542ccafc143b38687e4a1965b73b-99be5dfff8bc3443.elb.us-west-2.amazonaws.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: echo2
+                port:
+                  number: 80
+            path: /echo-2
+            pathType: Exact
+
+

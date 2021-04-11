@@ -22,7 +22,7 @@ describe('OrganizationManager', function () {
         expect(result.name).equal(testOrg.name);
         expect(result.verification?.method).equal(testOrg.verification.method);
         expect(result.verification?.verified).to.be.false;
-        expect(result.verification?.token).length.is.greaterThan(32);
+        expect(result.verification?.token).to.have.lengthOf(16);
         expect(String(result.verification?.user._id)).equal(String(testUser._id));
         expect(String(role.user._id)).equal(String(testUser._id));
         expect(String(role.org._id)).equal(String(result._id));

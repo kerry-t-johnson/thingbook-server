@@ -15,7 +15,7 @@ import * as passportJwt from 'passport-jwt';
 import { ThingBookHttpError } from '../utils/error.utils';
 import { StatusCodes } from 'http-status-codes';
 import { KeyValueService } from '../services/keyvalue.service';
-import { PaginationOptions } from '../../../thingbook-api/src/metadata.api';
+import { PaginationOptions } from 'thingbook-api';
 
 @injectable()
 export class UserRoutes extends AbstractRoute {

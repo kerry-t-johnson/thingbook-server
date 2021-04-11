@@ -6,7 +6,7 @@ import { assertIsValidObjectId, Database } from '../utils/database.utils';
 import { ClientSession } from 'mongoose';
 import { ThingBookHttpError } from '../utils/error.utils';
 import { StatusCodes } from 'http-status-codes';
-import { PaginatedResults, PaginationOptions } from '../../../thingbook-api/src/metadata.api';
+import { PaginatedResults, PaginationOptions } from 'thingbook-api';
 
 @injectable()
 export class OrganizationServiceImpl extends AbstractService implements OrganizationService {

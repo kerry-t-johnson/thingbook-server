@@ -4,7 +4,7 @@ import { inject, injectable } from "tsyringe";
 import { DataLoaderService } from "../services/data-loader.service";
 import { assertIsDefined } from "../../src/utils";
 import { DataLoadRequest } from "thingbook-api/lib";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { Request } from "express";
 
 @injectable()

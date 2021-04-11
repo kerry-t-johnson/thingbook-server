@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { inject, injectable } from "tsyringe";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { DataSharingService } from "../services/data-sharing.service";
 import { assertIsDefined } from "../utils";
 import { AbstractRoute } from "./route.common";

@@ -1,4 +1,4 @@
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { UserDocument } from "../models/user.model";
 
 export interface UserService {

@@ -6,7 +6,7 @@ import { AbstractRoute } from './route.common';
 import { assertIsDefined } from '../utils';
 import { OrganizationManager } from '../business/organization.manager';
 import * as core from 'express-serve-static-core';
-import { PaginatedResults, PaginationOptions } from '../../../thingbook-api/src/metadata.api';
+import { PaginatedResults, PaginationOptions } from 'thingbook-api';
 
 
 @injectable()

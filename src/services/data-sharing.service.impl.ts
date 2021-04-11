@@ -1,7 +1,7 @@
 import { ClientSession } from "mongoose";
 import { injectable } from "tsyringe";
 import { DataSharingFragment, DataSharingFragmentDocument, DataSharingTemplate, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument } from "../models/organization.model";
 import { Database } from "../utils/database.utils";
 import { DataSharingService } from "./data-sharing.service";
@@ -21,7 +21,7 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
         return DataSharingFragment.find()
             .sort(options.asSortCriteria())
             .skip(options.page_number)
-            .limit(options.limit)
+            .limit(options.page_size)
             .exec();
     }
 
@@ -31,7 +31,7 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
         return DataSharingTemplate.find()
             .sort(options.asSortCriteria())
             .skip(options.page_number)
-            .limit(options.limit)
+            .limit(options.page_size)
             .populate('fragments')
             .exec();
     }
@@ -74,7 +74,7 @@ export class DataSharingServiceImpl extends AbstractService implements DataShari
         return await OrganizationDataSharingAgreement.find()
             .sort(options.asSortCriteria())
             .skip(options.page_number)
-            .limit(options.limit)
+            .limit(options.page_size)
             .populate('producer', '-verification -sensorThingsAPI')
             .populate('consumer', '-verification -sensorThingsAPI')
             .populate({

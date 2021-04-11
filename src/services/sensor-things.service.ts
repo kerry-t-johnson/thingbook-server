@@ -2,7 +2,7 @@ import { Logger } from "winston";
 import { getLogger } from "../utils/logger";
 import axios from "axios";
 import { ThingBookError, ThingBookHttpError } from "../utils/error.utils";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { MqttClient, connect as MqttConnect } from 'mqtt';
 import { StatusCodes } from "http-status-codes";
 

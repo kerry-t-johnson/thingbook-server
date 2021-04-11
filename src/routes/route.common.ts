@@ -3,7 +3,7 @@ import { Logger, getLogger } from "../utils/logger";
 import { EntityNotFoundError, ThingBookHttpError } from "../utils/error.utils";
 import { StatusCodes } from "http-status-codes";
 import { sha256 } from "../utils";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import R = require('ramda');
 import * as core from 'express-serve-static-core';
 import { Configuration } from "../config";

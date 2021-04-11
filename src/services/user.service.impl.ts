@@ -5,7 +5,7 @@ import { ThingBookHttpError } from "../utils/error.utils";
 import { AbstractService } from "./service.common";
 import { UserService } from "./user.service";
 import { StatusCodes } from 'http-status-codes';
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 
 @injectable()
 export class UserServiceImpl extends AbstractService implements UserService {

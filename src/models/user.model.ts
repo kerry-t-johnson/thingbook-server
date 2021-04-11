@@ -2,7 +2,7 @@ import { Schema, model, Document, PassportLocalModel, PassportLocalDocument, Mod
 import passportLocalMongoose from 'passport-local-mongoose';
 import { isValidEmailAddress, maskEmail } from '../utils';
 import { assertIsValidObjectId } from '../utils/database.utils';
-import { PaginationOptions } from '../../../thingbook-api/src/metadata.api';
+import { PaginationOptions } from 'thingbook-api';
 import * as api from 'thingbook-api';
 
 
