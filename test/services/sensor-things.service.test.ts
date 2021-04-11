@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { SensorThingsHTTP, SensorThingsMQTT } from "../../src/services/sensor-things.service";
 
 function sleep(ms: number) {

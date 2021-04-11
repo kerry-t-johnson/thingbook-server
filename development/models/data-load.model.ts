@@ -1,6 +1,5 @@
 import { Document, model, Model, Schema } from "mongoose";
 import * as api from 'thingbook-api';
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
 import { enumValues } from "../../src/utils";
 
 
@@ -37,11 +36,11 @@ export const DataLoadRequestSchema = new Schema({
 });
 
 export interface DataLoadRequestModel extends Model<DataLoadRequestDocument> {
-    list: (options?: PaginationOptions) => Promise<DataLoadRequestDocument[]>;
+    list: (options?: api.PaginationOptions) => Promise<DataLoadRequestDocument[]>;
 }
 
-DataLoadRequestSchema.statics.list = async function (options?: PaginationOptions): Promise<DataLoadRequestDocument[]> {
-    options = options || new PaginationOptions();
+DataLoadRequestSchema.statics.list = async function (options?: api.PaginationOptions): Promise<DataLoadRequestDocument[]> {
+    options = options || new api.PaginationOptions();
 
     return this.find()
         .sort(options.asSortCriteria())

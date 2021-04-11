@@ -1,7 +1,7 @@
 import { ClientSession } from "mongoose";
 import { injectable } from "tsyringe";
 import { DataSharingFragment, DataSharingFragmentDocument, DataSharingTemplate, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { OrganizationDataSharingAgreement, OrganizationDataSharingAgreementDocument } from "../models/organization.model";
 import { Database } from "../utils/database.utils";
 import { DataSharingService } from "./data-sharing.service";

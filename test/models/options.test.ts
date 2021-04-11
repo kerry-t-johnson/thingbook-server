@@ -1,4 +1,4 @@
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { expect } from "chai";
 
 

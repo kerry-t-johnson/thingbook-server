@@ -1,5 +1,5 @@
 import { OrganizationDataSharingAgreementDocument, OrganizationDataSharingTemplateDocument, OrganizationDocument, OrganizationRoleDocument, OrganizationSensorThingsStatusDocument } from '../models/organization.model';
-import { PaginatedResults, PaginationOptions } from '../../../thingbook-api/src/metadata.api';
+import { PaginatedResults, PaginationOptions } from 'thingbook-api';
 import { ClientSession } from 'mongoose';
 
 export interface OrganizationService {

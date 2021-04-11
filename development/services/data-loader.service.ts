@@ -3,7 +3,7 @@ import { StatusCodes } from "http-status-codes";
 import { Error } from "mongoose";
 import * as api from "thingbook-api/lib";
 import { inject, injectable } from "tsyringe";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { AbstractService } from "../../src/services/service.common";
 import { assertIsDefined } from "../../src/utils";
 import { DataLoadRequest, DataLoadRequestDocument, EntityCreationStatusDocument } from "../models/data-load.model";

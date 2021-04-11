@@ -1,6 +1,6 @@
 import { ClientSession } from "mongoose";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { OrganizationDataSharingAgreementDocument } from "../models/organization.model";
 
 export interface DataSharingService {
