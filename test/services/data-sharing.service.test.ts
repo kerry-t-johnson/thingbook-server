@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { DependencyInjection } from "../../src/dependency-injection";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../../src/models/data-sharing.model";
-import { PaginationOptions } from "../../../thingbook-api/src/metadata.api";
+import { PaginationOptions } from 'thingbook-api';
 import { DataSharingService } from "../../src/services/data-sharing.service";
 import { ThingFaker } from "../thing.faker";
 

@@ -1,5 +1,6 @@
 import 'reflect-metadata';
-import { OrganizationDocument, PaginationOptions } from '../../src/models/organization.model';
+import { OrganizationDocument } from '../../src/models/organization.model';
+import { PaginationOptions, PaginatedResults } from 'thingbook-api';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
 import { ThingFaker } from '../thing.faker';
@@ -66,9 +67,9 @@ describe('OrganizationService', function () {
             await uut.createOrganization(testOrg);
         }
 
-        const actual: OrganizationDocument[] = await uut.listOrganizations(new PaginationOptions({ page_size: 1000 }));
+        const actual: PaginatedResults<OrganizationDocument> = await uut.listOrganizations(new PaginationOptions({ page_size: 1000 }));
 
-        expect(actual.length).equal(testOrgs.length);
+        expect(actual.items.length).equal(testOrgs.length);
     });
 
     it('Will limit the number of Organizations returned', async function () {
@@ -86,11 +87,11 @@ describe('OrganizationService', function () {
         while (cumulative < numOrganizations) {
             const expectedCount = Math.min(limit, numOrganizations - cumulative);
 
-            const actual: OrganizationDocument[] = await uut.listOrganizations(new PaginationOptions({ page_number: cumulative, page_size: limit }));
+            const actual: PaginatedResults<OrganizationDocument> = await uut.listOrganizations(new PaginationOptions({ page_number: cumulative, page_size: limit }));
 
-            expect(actual.length).equal(expectedCount);
+            expect(actual.items.length).equal(expectedCount);
 
-            cumulative += actual.length;
+            cumulative += actual.items.length;
         }
     });
 
