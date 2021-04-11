@@ -61,11 +61,65 @@ roleRef:
 
 ---
 # ============================================================================
+# Service: thingbook-ui
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# This Service type is "ClusterIP" which allocates a cluster-internal IP
+# address for load-balancing to endpoints. Endpoints are determined by the
+# selector...
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: thingbook-ui
+  namespace: thingbook
+  labels:
+    name: thingbook-ui
+    tier: presentation
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    role: thingbook-ui
+
+
+---
+# ============================================================================
+# Service: thingbook-api
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# This Service type is "ClusterIP" which allocates a cluster-internal IP
+# address for load-balancing to endpoints. Endpoints are determined by the
+# selector...
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: thingbook-api
+  namespace: thingbook
+  labels:
+    name: thingbook-api
+    tier: presentation
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    role: thingbook-api
+
+
+---
+# ============================================================================
 # Ingress: thingbook-ingress
 # ----------------------------------------------------------------------------
 # Ingress is a collection of rules that allow inbound connections to reach the
 # endpoints defined by a backend. An Ingress can be configured to give
-# services externally-reachable urls.
+# services externally-reachable URLs.
 # ============================================================================
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -76,22 +130,98 @@ spec:
     - host: adfc542ccafc143b38687e4a1965b73b-99be5dfff8bc3443.elb.us-west-2.amazonaws.com
       http:
         paths:
+          # This entry directs all /api/* traffic to the ThingBook REST API
+          # service
           - backend:
               service:
-                name: echo1
+                name: thingbook-api
                 port:
                   number: 80
-            path: /echo-1
-            pathType: Exact
-    - host: adfc542ccafc143b38687e4a1965b73b-99be5dfff8bc3443.elb.us-west-2.amazonaws.com
-      http:
-        paths:
+            path: /api
+            pathType: Prefix
+          # This entry directs all / traffic to the ThingBook User Interface
+          # service
           - backend:
               service:
-                name: echo2
+                name: thingbook-ui
                 port:
                   number: 80
-            path: /echo-2
+            path: /
             pathType: Exact
 
 
+---
+# ============================================================================
+# Deployment: thingbook-ui
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+#
+# This deployment instantiates a container which serves the ReactJS User
+# Interface
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thingbook-ui
+  namespace: thingbook
+  labels:
+    k8s-app: thingbook-ui
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: thingbook-ui
+  template:
+    metadata:
+      labels:
+        role: thingbook-ui
+    spec:
+      containers:
+      - name: thingbook-ui
+        image: kerrytjohnson/thingbook-react-ui:master
+        ports:
+        - containerPort: 80
+          name: thingbook-ui
+          protocol: TCP
+
+
+---
+# ============================================================================
+# Deployment: thingbook-api
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+#
+# This deployment instantiates a container which implements the Thingbook
+# REST API.
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thingbook-api
+  namespace: thingbook
+  labels:
+    k8s-app: thingbook-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: thingbook-api
+  template:
+    metadata:
+      labels:
+        role: thingbook-api
+    spec:
+      containers:
+        - name: thingbook-server
+          image: kerrytjohnson/thingbook-server:master
+          env:
+            - name: DATABASE_URL
+              value: mongodb://mongo-replica-0.mongo,mongo-replica-1.mongo,mongo-replica-2.mongo/thingbook?replicaSet=rs0
+          ports:
+            - containerPort: 80
+              name: thingbook-api
+              protocol: TCP

@@ -25,4 +25,4 @@ COPY ["package*.json", "npm-shrinkwrap.json*", "./"]
 RUN npm install --production --silent
 
 COPY --from=builder /opt/thingbook-server/dist .
-CMD ["./dist/application.js"]
+CMD ["node", "./src/server.js"]
