@@ -84,14 +84,16 @@ describe('OrganizationService', function () {
 
         const limit = 7;
         let cumulative = 0;
+        let page = 0;
         while (cumulative < numOrganizations) {
             const expectedCount = Math.min(limit, numOrganizations - cumulative);
 
-            const actual: PaginatedResults<OrganizationDocument> = await uut.listOrganizations(new PaginationOptions({ page_number: cumulative, page_size: limit }));
+            const actual: PaginatedResults<OrganizationDocument> = await uut.listOrganizations(new PaginationOptions({ page_number: page, page_size: limit }));
 
             expect(actual.items.length).equal(expectedCount);
 
             cumulative += actual.items.length;
+            page++;
         }
     });
 

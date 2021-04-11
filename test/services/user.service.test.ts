@@ -1,11 +1,12 @@
 import 'reflect-metadata';
 import * as faker from 'faker';
 import { UserServiceImpl } from '../../src/services/user.service.impl';
-import { UserDocument, PaginationOptions } from '../../src/models/user.model';
+import { PaginationOptions } from 'thingbook-api';
 import { expect } from 'chai';
 import { isValidObjectId } from 'mongoose';
 import { ThingFaker } from '../thing.faker';
 import { DependencyInjection } from '../../src/dependency-injection';
+import { UserDocument } from '../../src/models/user.model';
 
 
 

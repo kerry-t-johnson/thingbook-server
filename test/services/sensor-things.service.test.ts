@@ -47,10 +47,10 @@ describe('SensorThings', function () {
             // Example: http://foo/v1.0/Datastreams(1)/Observations
             const uut: SensorThingsHTTP = SensorThingsHTTP.getInstance(httpUrl);
 
-            let query = new PaginationOptions({ limit: 5 });
+            let query = new PaginationOptions({ page_size: 5 });
             const data = await uut.list('Observations', query);
 
-            expect(data.length).equal(query.limit);
+            expect(data.length).equal(query.page_size);
         });
 
         it('Tries MQTT, cuz why not', async function () {

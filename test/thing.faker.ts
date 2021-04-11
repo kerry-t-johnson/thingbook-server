@@ -21,7 +21,8 @@ export class ThingFaker {
         const result: any = {
             name: faker.random.words(),
             domainName: faker.random.uuid() + '.com',
-            sensorThingsAPI: faker.internet.url()
+            sensorThingsAPI: faker.internet.url(),
+            sensorThingsMQTT: faker.internet.url(),
         };
 
         if (withVerification) {

@@ -92,12 +92,12 @@ export class DataLoaderService extends AbstractService {
 
                         if (r.status === 'fulfilled') {
                             entity.status = r.value.status;
-                            request.created += r.value.status == StatusCodes.CREATED ? 1 : 0;
-                            request.existing += r.value.status == StatusCodes.SEE_OTHER ? 1 : 0;
+                            request.created! += r.value.status == StatusCodes.CREATED ? 1 : 0;
+                            request.existing! += r.value.status == StatusCodes.SEE_OTHER ? 1 : 0;
                         }
                         else {
                             this.logger.error(`Could not create SensorThing entity '${entity.resource}': ${r.reason}`);
-                            request.failed += 1;
+                            request.failed! += 1;
                         }
                     }
 
@@ -105,7 +105,7 @@ export class DataLoaderService extends AbstractService {
 
                     this.logger.silly(`DataLoadRequest ${job.attrs.data?.dataLoadRequest}: Created ${request.created}, Existing: ${request.existing}`);
 
-                    request.state = (request.created + request.existing == request.entities.length) ?
+                    request.state = (request.created! + request.existing! == request.entities.length) ?
                         api.DataLoadRequestState.COMPLETE :
                         (request.retries > 0) ? api.DataLoadRequestState.IN_PROGRESS :
                             api.DataLoadRequestState.FAILED;

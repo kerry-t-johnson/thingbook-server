@@ -25,7 +25,7 @@ describe('DataSharingService', function () {
             await ThingFaker.createDataSharingFragmentEntity();
         }
 
-        const actual: DataSharingFragmentDocument[] = await uut.listDataSharingFragments(new PaginationOptions({ limit: 1000 }));
+        const actual: DataSharingFragmentDocument[] = await uut.listDataSharingFragments(new PaginationOptions({ page_size: 1000 }));
 
         expect(actual.length).equal(numTestItems);
 
@@ -52,7 +52,7 @@ describe('DataSharingService', function () {
             await ThingFaker.createDataSharingTemplateEntity();
         }
 
-        const actual: DataSharingTemplateDocument[] = await uut.listDataSharingTemplates(new PaginationOptions({ limit: 1000 }));
+        const actual: DataSharingTemplateDocument[] = await uut.listDataSharingTemplates(new PaginationOptions({ page_size: 1000 }));
 
         expect(actual.length).equal(numTestItems);
 
