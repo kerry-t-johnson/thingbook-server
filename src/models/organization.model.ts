@@ -1,4 +1,4 @@
-import { PaginatedResults, PaginationOptions, PaginationStatus } from '../../../thingbook-api/src/metadata.api';
+import { PaginatedResults, PaginationOptions, PaginationStatus } from 'thingbook-api';
 import { Schema, model, Model, Document } from 'mongoose';
 import { DataSharingTemplateDocument } from './data-sharing.model';
 import { enumValues } from '../utils';

@@ -38,7 +38,6 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/mongoose": "^5.10.3",
     "@types/morgan": "^1.9.2",
-    "@types/mqtt": "^2.5.0",
     "@types/passport": "^1.0.6",
     "@types/passport-jwt": "^3.0.5",
     "@types/passport-local-mongoose": "^4.0.13",
