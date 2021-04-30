@@ -18,9 +18,11 @@ export class EventService {
     }
 
     public post(eventName: string, ...args: any[]): void {
-        this.logger.debug(`Posting event: ${eventName}`);
         this.impl.emit(eventName, ...args);
     }
 
+    public stopListening(eventName: string, callback: (...args: any[]) => void): void {
+        this.impl.removeListener(eventName, callback);
+    }
 
 }

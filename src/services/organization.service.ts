@@ -22,11 +22,18 @@ export interface OrganizationService {
         session?: ClientSession | null) => Promise<OrganizationDataSharingTemplateDocument>;
 
     // Organization Data Sharing Agreement
+    findAgreement: (idOrName: string | number) => Promise<OrganizationDataSharingAgreementDocument>;
+    listAllOrganizationDataSharingAgreements: (options?: PaginationOptions) => Promise<PaginatedResults<OrganizationDataSharingAgreementDocument>>;
     listOrganizationDataSharingAgreements: (
         org: OrganizationDocument,
-        options?: PaginationOptions) => Promise<OrganizationDataSharingAgreementDocument[]>;
+        role?: string,
+        options?: PaginationOptions) => Promise<PaginatedResults<OrganizationDataSharingAgreementDocument>>;
 
     createOrganizationDataSharingAgreement: (
+        agreement: OrganizationDataSharingAgreementDocument,
+        session?: ClientSession | null) => Promise<OrganizationDataSharingAgreementDocument>;
+
+    updateOrganizationDataSharingAgreement: (
         agreement: OrganizationDataSharingAgreementDocument,
         session?: ClientSession | null) => Promise<OrganizationDataSharingAgreementDocument>;
 

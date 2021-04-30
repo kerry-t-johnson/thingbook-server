@@ -5,3 +5,9 @@ ObservedProperties:
   - name: FMV
     description: Full Motion Video
     definition: https://en.wikipedia.org/wiki/Full_motion_video
+  - name: Temperature
+    description: Temperature
+    definition: https://en.wikipedia.org/wiki/Temperature
+  - name: AtmosphericPressure
+    description: Atmospheric pressure
+    definition: https://en.wikipedia.org/wiki/Atmospheric_pressure

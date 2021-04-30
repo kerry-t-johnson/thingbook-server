@@ -5,6 +5,7 @@ import { ThingBookError, ThingBookHttpError } from "../utils/error.utils";
 import { PaginationOptions } from 'thingbook-api';
 import { MqttClient, connect as MqttConnect } from 'mqtt';
 import { StatusCodes } from "http-status-codes";
+const dns = require('dns');
 
 export class SensorThingsHTTP {
 
@@ -31,7 +32,7 @@ export class SensorThingsHTTP {
     public async get(resource: string | undefined = undefined) {
         const url: string = resource ? `${this.url}/${resource}` : this.url;
 
-        const result = await axios.get(url);
+        const result = await axios.get(url, { timeout: 750 });
 
         return result.data;
     }
@@ -94,8 +95,8 @@ export class SensorThingsMQTT {
     private static INSTANCES: { [key: string]: SensorThingsMQTT } = {};
 
     private logger: Logger = getLogger('SensorThingsMQTT');
-    private url: string;
-    private mqtt: MqttClient;
+    readonly url: URL;
+    private mqtt: MqttClient | undefined;
     private subscriptions: { [key: string]: Function[] } = {};
 
     public static getInstance(url: string, options: any = { clientId: 'ThingBook' }): SensorThingsMQTT {
@@ -108,15 +109,56 @@ export class SensorThingsMQTT {
         return instance;
     }
 
-    private constructor(url: string, options: any = { clientId: 'ThingBook' }) {
-        this.url = url;
-        this.mqtt = MqttConnect(url, options);
+    private constructor(url: string) {
+        this.url = new URL(url);
 
-        this.mqtt.on('connect', () => {
-            this.logger.debug(`Connected to MQTT broker: ${this.url}`);
+        this.preInitialize();
+    }
+
+    private preInitialize() {
+        dns.resolve(this.url.hostname, this.onMqttServerResolved.bind(this));
+    }
+
+    private onMqttServerResolved(err: any, addresses: any) {
+        if (err) {
+            this.logger.error(err);
+
+            setTimeout(this.preInitialize.bind(this), 30000);
+        }
+        else {
+            this.initializeMqtt(addresses);
+        }
+    }
+
+    private initializeMqtt(addresses: []) {
+        this.mqtt = MqttConnect({
+            clientId: 'ThingBook',
+            keepalive: 10000,
+            reconnectPeriod: 30000,
+            connectTimeout: 10000,
+            clean: false,
+            servers: addresses.map(a => ({ host: a, port: parseInt(this.url.port) }))
+        });
+
+        this.mqtt.on('connect', (ack: any) => {
+            this.logger.info(`Connected to MQTT broker: ${this.url}`);
+
+            this.onConnected();
+        });
+
+        this.mqtt.on('error', (error) => {
+            this.logger.warn(`Error communicating with MQTT broker: ${this.url}: ${error}`);
+        });
+
+        this.mqtt.on('reconnect', () => {
+            this.logger.silly(`Reconnecting to MQTT broker: ${this.url}`);
         });
 
         this.mqtt.on('message', this.onMessage.bind(this));
+    }
+
+    public isConnected() {
+        return this.mqtt?.connected ?? false;
     }
 
     public async subscribe(topic: string, func: Function) {
@@ -126,16 +168,39 @@ export class SensorThingsMQTT {
 
         this.subscriptions[topic]!.push(func);
 
-        if (this.subscriptions[topic]!.length == 1) {
-            this.mqtt.subscribe(topic, (error: any, granted: any) => {
-                if (error) {
-                    this.logger.error(error);
-                }
-                else {
-                    this.logger.debug(`Subscribed to ${this.url}#${topic}`);
-                }
-            });
+        if (this.subscriptions[topic]!.length == 1 && this.mqtt) {
+            this.createMqttSubscription(topic);
         }
+        else {
+            this.logger.debug(`Deferred subscription to ${this.url.toString()}#${topic}`);
+        }
+    }
+
+    public async publish(topic: string, message: string) {
+        if (this.mqtt) {
+            this.mqtt.publish(topic, message);
+        }
+        else {
+            this.logger.debug(`Unable to send message on topic '${topic}' (not connected)`);
+        }
+    }
+
+    private onConnected() {
+        for (const topic in this.subscriptions) {
+            this.createMqttSubscription(topic);
+        }
+    }
+
+    private createMqttSubscription(topic: string) {
+        this.mqtt!.subscribe(topic, (error: any, granted: any) => {
+            if (error) {
+                this.logger.error(`Unable to subscribe to topic: ${topic}`);
+                this.logger.error(error);
+            }
+            else {
+                this.logger.debug(`Subscribed to ${this.url}#${topic}`);
+            }
+        });
     }
 
     private async onMessage(topic: string, message: any) {

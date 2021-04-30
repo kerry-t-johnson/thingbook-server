@@ -14,12 +14,12 @@ import { Configuration } from "../config";
 import * as api from 'thingbook-api';
 import { EventService } from "../services/event-service";
 import { SensorThingsHTTP } from "../services/sensor-things.service";
-import { ObservationBroker } from "../services/observation-broker";
+import { SensorThingsMqttSubscriber } from "../services/sensor-things-mqtt-subscriber";
 
 @injectable()
 export class OrganizationManagerImpl extends AbstractManager implements OrganizationManager {
 
-    private dsBrokers: ObservationBroker[] = [];
+    private mqttSubscribers: SensorThingsMqttSubscriber[] = [];
 
     constructor(
         @inject("Configuration") private config?: Configuration,
@@ -75,8 +75,7 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
             const job: Job = await this.agenda.create(
                 "sensor-things-api-status", {
                 org: createdOrg._id
-            })
-                .repeatEvery(this.config.sensorThingsApiStatusRepeatEvery)
+            }).repeatEvery(this.config.sensorThingsApiStatusRepeatEvery)
                 .save();
 
             this.logger.debug(`Created ${job.attrs.name} to repeat every ${job.attrs.name} starting at ${job.attrs.nextRunAt}`);
@@ -131,8 +130,6 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
         assertIsDefined(this.config);
         assertIsDefined(this.eventSvc);
 
-        console.log(agreement);
-
         const session = await startSession();
         try {
             session.startTransaction();
@@ -156,7 +153,7 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
 
             await session.commitTransaction();
 
-            this.dsBrokers.push(new ObservationBroker(createdAgreement));
+            this.mqttSubscribers.push(new SensorThingsMqttSubscriber(createdAgreement));
 
             this.eventSvc.post('data-sharing-agreement.created', createdAgreement);
 
@@ -171,7 +168,21 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
         }
     }
 
+
+    public async addConsumerToAgreement(
+        agreement: OrganizationDataSharingAgreementDocument,
+        consumer: OrganizationDocument): Promise<OrganizationDataSharingAgreementDocument> {
+        assertIsDefined(this.orgSvc);
+
+        agreement.consumers.push(consumer);
+
+        return await this.orgSvc.updateOrganizationDataSharingAgreement(agreement);
+    }
+
+
     private async checkSensorThingsApiStatus(job: Job) {
+        assertIsDefined(this.eventSvc);
+
         const org: OrganizationDocument = await Organization.findById(job.attrs.data?.org).orFail();
         const status: any = { org: org._id, reachable: false, lastStatus: 'Unknown' };
 
@@ -184,9 +195,15 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
         }
         catch (error) {
             status.lastStatus = error.message;
-            this.logger.error(error);
         }
         finally {
+            this.eventSvc.post(
+                'sensor-things-api.updated', {
+                org: org._id,
+                api: org.sensorThingsAPI,
+                status: status
+            });
+
             this.orgSvc?.updateSensorThingsStatus(<OrganizationSensorThingsStatusDocument>status).catch((error) => {
                 this.logger.error(error);
             });
@@ -199,11 +216,11 @@ export class OrganizationManagerImpl extends AbstractManager implements Organiza
         const agreements: OrganizationDataSharingAgreementDocument[] = await OrganizationDataSharingAgreement
             .find({ state: api.OrganizationDataSharingAgreementState.ACTIVE })
             .populate('producer')
-            .populate('consumer')
+            .populate('consumers')
             .exec();
 
         for (let a of agreements) {
-            this.dsBrokers.push(new ObservationBroker(a));
+            this.mqttSubscribers.push(new SensorThingsMqttSubscriber(a));
         }
 
     }

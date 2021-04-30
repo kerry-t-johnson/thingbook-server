@@ -37,7 +37,7 @@ export class Configuration {
             let key = snake.snakeCase(k).toUpperCase();
 
             logger.debug(`${key}: ${v}`);
-        }
+        } ``
 
     }
 }

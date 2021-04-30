@@ -1,6 +1,6 @@
 import { ClientSession } from "mongoose";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../models/data-sharing.model";
-import { PaginationOptions } from 'thingbook-api';
+import { PaginatedResults, PaginationOptions } from 'thingbook-api';
 import { OrganizationDataSharingAgreementDocument } from "../models/organization.model";
 
 export interface DataSharingService {
@@ -10,11 +10,12 @@ export interface DataSharingService {
     createDataSharingFragment: (fragment: DataSharingFragmentDocument, session?: ClientSession) => Promise<DataSharingFragmentDocument>;
 
     // Data Sharing Template
-    listDataSharingTemplates: (options?: PaginationOptions) => Promise<DataSharingTemplateDocument[]>;
+    listDataSharingTemplates: (options?: PaginationOptions) => Promise<PaginatedResults<DataSharingTemplateDocument>>;
     createDataSharingTemplate: (fragment: DataSharingTemplateDocument, session?: ClientSession) => Promise<DataSharingTemplateDocument>;
 
     // Organization Data Sharing Agreement
     // NOTE: Agreements are created via Organization Service based on the data producer
-    listDataSharingAgreements: (options?: PaginationOptions) => Promise<OrganizationDataSharingAgreementDocument[]>;
+    getDataSharingAgreement: (options?: PaginationOptions) => Promise<OrganizationDataSharingAgreementDocument>;
+    listDataSharingAgreements: (options?: PaginationOptions) => Promise<PaginatedResults<OrganizationDataSharingAgreementDocument>>;
 
 }

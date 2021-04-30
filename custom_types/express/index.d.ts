@@ -6,6 +6,7 @@ declare namespace Express {
         authUser?: any;
         userValue?: any;
         orgValue?: any;
+        agreementValue?: any;
         getUrl(p?: string): URL;
     }
 }

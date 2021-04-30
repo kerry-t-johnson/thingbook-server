@@ -169,7 +169,7 @@ describe('OrganizationService', function () {
 
         expect(result.name).equal(testAgreement.name);
         expect(result.producer._id.toString()).equal(testAgreement.producer.toString());
-        expect(result.consumer._id.toString()).equal(testAgreement.consumer.toString());
+        expect(result.consumers[0]!._id.toString()).equal(testAgreement.consumers[0].toString());
     });
 
     it('Lists Organization Data Sharing Agreements', async function () {
@@ -184,9 +184,9 @@ describe('OrganizationService', function () {
 
         const result = await uut.listOrganizationDataSharingAgreements(testProducer);
 
-        expect(result.length).equal(testAgreements.length).equal(numTestItems);
+        expect(result.items.length).equal(testAgreements.length).equal(numTestItems);
         for (let i = 0; i < numTestItems; ++i) {
-            expect(result[i]?.name, 'name').equal(testAgreements[i]?.name);
+            expect(result.items[i]?.name, 'name').equal(testAgreements[i]?.name);
         }
     });
 

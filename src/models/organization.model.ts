@@ -153,9 +153,11 @@ export interface OrganizationDataSharingAgreementDocument extends Document, api.
 export const OrganizationDataSharingAgreementSchema = new Schema({
     name: { type: String, required: true },
     producer: { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
-    consumer: { type: Schema.Types.ObjectId, ref: 'Organization', required: true },
+    consumers: [{ type: Schema.Types.ObjectId, ref: 'Organization', required: true }],
     commenceDate: { type: Date, required: true },
     expirationDate: { type: Date, required: true },
+    imageURL: { type: String, required: true },
+    extraImageURLs: { type: Schema.Types.Mixed },
     state: { type: String, required: true, enum: enumValues(api.OrganizationDataSharingAgreementState) },
     template: { type: Schema.Types.ObjectId, ref: 'OrganizationDataSharingTemplate', required: true },
     datastreams: [{

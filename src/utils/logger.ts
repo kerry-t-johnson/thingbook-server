@@ -29,7 +29,7 @@ export function getLogger(name: String): Logger {
                     }),
                     winston.format(info => {
                         info.level = sprintf('%-5s', info.level.toUpperCase());
-                        info.service = sprintf('%-20s', info.service);
+                        info.service = sprintf('%-25s', info.service);
                         return info;
                     })(),
                     winston.format.colorize({ all: true }),

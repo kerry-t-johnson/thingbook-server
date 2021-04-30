@@ -17,7 +17,6 @@ async function processYamlCommand(argv: any) {
 
         const factory = new SensorThingsEntityFactory(argv.URL);
         for (let queueItem of queue) {
-
             const result: api.EntityCreationStatus = await factory.create(queueItem);
 
             switch (result.status) {

@@ -66,16 +66,16 @@ export class ThingFaker {
 
     public static async createOrganizationDataSharingAgreement(
         producer?: OrganizationDocument,
-        consumer?: OrganizationDocument,
+        consumers?: OrganizationDocument[],
         template?: OrganizationDataSharingTemplateDocument): Promise<any> {
-        const testProducer = producer || await ThingFaker.createOrgEntity();
-        const testConsumer = consumer || await ThingFaker.createOrgEntity();
-        const testTemplate = template || await ThingFaker.createOrganizationDataSharingTemplateEntity(testProducer);
+        const testProducer = producer ?? await ThingFaker.createOrgEntity();
+        const testConsumers = consumers ?? [await ThingFaker.createOrgEntity()];
+        const testTemplate = template ?? await ThingFaker.createOrganizationDataSharingTemplateEntity(testProducer);
 
         return Promise.resolve({
             name: faker.random.words(),
             producer: testProducer._id,
-            consumer: testConsumer._id,
+            consumers: testConsumers.map((c) => c.id),
             commenceDate: faker.date.recent(),
             expirationDate: faker.date.future(),
             state: api.OrganizationDataSharingAgreementState.ACTIVE.toString(),
@@ -120,10 +120,10 @@ export class ThingFaker {
 
     public static async createOrganizationDataSharingAgreementEntity(
         producer?: OrganizationDocument,
-        consumer?: OrganizationDocument,
+        consumers?: OrganizationDocument[],
         template?: OrganizationDataSharingTemplateDocument): Promise<OrganizationDataSharingAgreementDocument> {
         const orgSvc: OrganizationService = container.resolve("OrganizationService");
-        const agreement = await ThingFaker.createOrganizationDataSharingAgreement(producer, consumer, template);
+        const agreement = await ThingFaker.createOrganizationDataSharingAgreement(producer, consumers, template);
 
         return await orgSvc.createOrganizationDataSharingAgreement(agreement);
     }

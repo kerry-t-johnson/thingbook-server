@@ -1,9 +1,18 @@
 Observations:
+  - Datastream: MCC-DataStream-001
+    FeatureOfInterest: Newport News City Center Fountain Plaza
+    sensor-things-dynamic:
+      phenomenonTime: CURRENT_TIME
+      result: RANDOM_WORDS
+      resultTime: CURRENT_TIME
+    sensor-things-repeat:
+      interval: 3
+      quantity: 33
   - Datastream: MCC-DataStream-002
     FeatureOfInterest: Newport News City Center Fountain Plaza
     sensor-things-dynamic:
       phenomenonTime: CURRENT_TIME
-      result: RANDOM_BOOLEAN
+      result: RANDOM_VEHICLE
       resultTime: CURRENT_TIME
     sensor-things-repeat:
       interval: 5

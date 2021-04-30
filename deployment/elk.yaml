@@ -173,6 +173,8 @@ metadata:
     k8s-app: filebeat
 data:
   filebeat.yml: |-
+    setup.dashboards.enabled: true
+    setup.kibana.host: http://kibana:5601
     filebeat.inputs:
       - type: container
         paths:
@@ -290,13 +292,13 @@ metadata:
     k8s-app: kibana
     kubernetes.io/name: "Kibana"
 spec:
-  type: NodePort
+  type: ClusterIP
   ports:
     - port: 5601
-      protocol: TCP
+      targetPort: 5601
       targetPort: kibana-ui
   selector:
-    k8s-app: kibana-logging
+    k8s-app: kibana
 
 
 ---
@@ -334,3 +336,30 @@ spec:
         - containerPort: 5601
           name: kibana-ui
           protocol: TCP
+
+
+---
+# ============================================================================
+# Ingress: kibana-ingress
+# ----------------------------------------------------------------------------
+# Ingress is a collection of rules that allow inbound connections to reach the
+# endpoints defined by a backend. An Ingress can be configured to give
+# services externally-reachable URLs.
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kibana-ingress
+  namespace: kube-system
+spec:
+  rules:
+    - host: kibana.thingbroker.org
+      http:
+        paths:
+          - backend:
+              service:
+                name: kibana
+                port:
+                  number: 5601
+            path: /
+            pathType: Prefix

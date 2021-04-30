@@ -22,6 +22,8 @@ enum SensorThingsResource {
 enum DynamicMethods {
     CURRENT_TIME = "CURRENT_TIME",
     RANDOM_BOOLEAN = "RANDOM_BOOLEAN",
+    RANDOM_VEHICLE = "RANDOM_VEHICLE",
+    RANDOM_WORDS = "RANDOM_WORDS",
 }
 
 
@@ -83,8 +85,8 @@ export class EntityCreationRequestFactory {
         for (let i = 1; i <= repeat.quantity; ++i) {
             results.push(<api.EntityCreationStatus>{
                 resource: resource,
-                data: copy,
-                dynamic: dynamic,
+                data: JSON.stringify(copy),
+                dynamic: JSON.stringify(dynamic),
                 createAt: new Date(now.getTime() + (repeat.interval * i * 1000))
             });
         }
@@ -189,7 +191,11 @@ export class SensorThingsEntityFactory {
             case DynamicMethods.CURRENT_TIME:
                 return new Date().toISOString();
             case DynamicMethods.RANDOM_BOOLEAN:
-                return faker.random.boolean();
+                return faker.datatype.boolean();
+            case DynamicMethods.RANDOM_VEHICLE:
+                return faker.vehicle.vehicle();
+            case DynamicMethods.RANDOM_WORDS:
+                return faker.lorem.words(3);
             default:
                 throw new ThingBookError(`Dynamic value not implemented: ${dynamicType}`);
         }
