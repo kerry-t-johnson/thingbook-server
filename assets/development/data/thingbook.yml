@@ -100,6 +100,7 @@ thingbook:
         - temperature
       datastreams:
         - Datastreams(1)
+        - Datastreams(3)
 
     - name: Arches Public Temperature and Atmospheric Pressure Datastreams
       org: Arches

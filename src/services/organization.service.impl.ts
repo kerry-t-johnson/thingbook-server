@@ -74,10 +74,10 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
     public async createOrganization(org: OrganizationDocument, session?: mongoose.ClientSession | null): Promise<OrganizationDocument> {
         session = session || null;
         try {
-            org.name.trim();
-            org.domainName.trim();
-            org.sensorThingsAPI.trim();
-            org.sensorThingsMQTT.trim();
+            org.name = org.name?.trim();
+            org.domainName = org.domainName?.trim();
+            org.sensorThingsAPI = org.sensorThingsAPI?.trim();
+            org.sensorThingsMQTT = org.sensorThingsMQTT?.trim();
 
             // Note the syntax which is used to create multiple.
             // This syntax must be used with transactions.
@@ -274,7 +274,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
         try {
             agreement = new OrganizationDataSharingAgreement(agreement);
-            await agreement.populate('consumers').execPopulate();
+            await agreement.populate('consumers').populate('producer').execPopulate();
 
             // Create the Plant UML diagram links:
             agreement.imageURL = DataSharingAgreementUmlImageUrl(agreement);
@@ -498,7 +498,7 @@ class DataSharingAgreementWebsocketSender {
 
         if (sourceId == this.dsaId) {
             const now: Date = new Date();
-            this.logger.debug(`Emit ata-shdaring-agreement.metrics for ${data.name}`);
+            this.logger.debug(`Emit data-sharing-agreement.metrics for ${data.name}`);
             this.namespace.emit(
                 'data-stream-metrics', {
                 metrics: data,
@@ -513,8 +513,6 @@ class DataSharingAgreementWebsocketSender {
 function DataSharingAgreementUmlImageUrl(dsa: OrganizationDataSharingAgreementDocument, action: string = 'none'): string {
     const producer = dsa.producer.name.replace(/\W+/g, '-');
     const topics = dsa.datastreams.map((ds: any) => `"${ds.name.replace('(', '').replace(')', '')}"`);
-    console.log(dsa.datastreams);
-    console.log(topics);
     const consumers = dsa.consumers.map((consumer: api.Organization) => consumer.name.replace(/\W+/g, '-'));
 
     const plantUmlContent = `

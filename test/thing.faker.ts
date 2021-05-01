@@ -20,7 +20,7 @@ export class ThingFaker {
     public static createOrg(withVerification?: boolean): any {
         const result: any = {
             name: faker.random.words(),
-            domainName: faker.random.uuid() + '.com',
+            domainName: faker.datatype.uuid() + '.com',
             sensorThingsAPI: faker.internet.url(),
             sensorThingsMQTT: faker.internet.url(),
         };

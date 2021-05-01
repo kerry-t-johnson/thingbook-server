@@ -85,8 +85,8 @@ export class EntityCreationRequestFactory {
         for (let i = 1; i <= repeat.quantity; ++i) {
             results.push(<api.EntityCreationStatus>{
                 resource: resource,
-                data: JSON.stringify(copy),
-                dynamic: JSON.stringify(dynamic),
+                data: copy,
+                dynamic: dynamic,
                 createAt: new Date(now.getTime() + (repeat.interval * i * 1000))
             });
         }

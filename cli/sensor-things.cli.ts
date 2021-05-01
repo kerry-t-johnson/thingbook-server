@@ -12,6 +12,15 @@ async function processYamlCommand(argv: any) {
     const factory = new EntityCreationRequestFactory();
     let queue: api.EntityCreationStatus[] = factory.fromYamlFile(...argv.file);
 
+    // When run via Agenda, the stored data is stringified... emulate that here
+    // (when we are running via CLI)  
+    for (let queueItem of queue) {
+        queueItem.data = JSON.stringify(queueItem.data);
+        if (queueItem.dynamic !== undefined) {
+            queueItem.dynamic = JSON.stringify(queueItem.dynamic);
+        }
+    }
+
     while (queue.length > 0) {
         const retries: api.EntityCreationStatus[] = [];
 

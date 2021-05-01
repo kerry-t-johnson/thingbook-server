@@ -7,6 +7,18 @@ Mammoth Cave:
       location:
         type: Point
         coordinates: [-76.47234990360394, 37.086454284356506]
+  FeaturesOfInterest:
+    - name: Mammoth Cave Feature
+      description: Mammoth Cave test feature of interest
+      encodingType: application/vnd.geo+json
+      feature:
+        type: Polygon
+        coordinates:
+          - - [-76.47202803855727, 37.08687365836135]
+            - [-76.47284343000885, 37.086437167000895]
+            - [-76.47293998952286, 37.08723311994723]
+            - [-76.47207095389683, 37.087541228521076]
+            - [-76.47202803855727, 37.08687365836135]
   Sensors:
     - name: Mammoth Cave Temperature-001
       description: Temperature Sensor

@@ -15,7 +15,6 @@ export interface DataSharingService {
 
     // Organization Data Sharing Agreement
     // NOTE: Agreements are created via Organization Service based on the data producer
-    getDataSharingAgreement: (options?: PaginationOptions) => Promise<OrganizationDataSharingAgreementDocument>;
     listDataSharingAgreements: (options?: PaginationOptions) => Promise<PaginatedResults<OrganizationDataSharingAgreementDocument>>;
 
 }
