@@ -1,3 +1,4 @@
+---
 # ============================================================================
 # The Nginx Ingress Controller consists of a Pod that runs the Nginx web
 # server and watches the Kubernetes Control Plane for new and updated Ingress

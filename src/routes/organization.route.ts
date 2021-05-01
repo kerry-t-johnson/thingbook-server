@@ -7,6 +7,7 @@ import { assertIsDefined } from '../utils';
 import { OrganizationManager } from '../business/organization.manager';
 import * as core from 'express-serve-static-core';
 import { PaginatedResults, PaginationOptions } from 'thingbook-api';
+import R = require('ramda');
 
 
 @injectable()
@@ -18,7 +19,6 @@ export class OrganizationRoutes extends AbstractRoute {
         super('Organization');
 
         OrganizationSchema.virtual('links').get(this.createOrganizationLinks);
-
     }
 
     public addRoutes(parent: core.Router) {
@@ -72,11 +72,12 @@ export class OrganizationRoutes extends AbstractRoute {
         );
     }
 
-    private async getOrgAgreements(req: Request, res: Response) {
+    private async getOrgAgreements(req: Request, res: Response): Promise<PaginatedResults<OrganizationDataSharingAgreementDocument>> {
         assertIsDefined(this.orgSvc);
 
         return await this.orgSvc.listOrganizationDataSharingAgreements(
             req.orgValue,
+            R.pathOr('producer', ['query', 'role'], req),
             this.getListOptions(req),
         );
     }

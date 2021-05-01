@@ -8,11 +8,15 @@ import { AbstractService } from "../../src/services/service.common";
 import { assertIsDefined } from "../../src/utils";
 import { DataLoadRequest, DataLoadRequestDocument, EntityCreationStatusDocument } from "../models/data-load.model";
 import { EntityCreationRequestFactory, SensorThingsEntityFactory } from "../sensor-things.dev";
+import { OrganizationService } from "../../src/services/organization.service";
+import { ThingBookHttpError } from "../../src/utils/error.utils";
 
 @injectable()
 export class DataLoaderService extends AbstractService {
 
-    constructor(@inject("agenda") private agenda?: Agenda,) {
+    constructor(
+        @inject("agenda") private agenda?: Agenda,
+        @inject("OrganizationService") private orgSvc?: OrganizationService) {
         super("DataLoader")
 
         assertIsDefined(this.agenda);
@@ -25,13 +29,37 @@ export class DataLoaderService extends AbstractService {
 
     public async loadSensorThingsData(request: api.DataLoadRequest): Promise<api.DataLoadRequest> {
         assertIsDefined(this.agenda);
+        assertIsDefined(this.orgSvc);
 
         const factory = new EntityCreationRequestFactory();
 
         let entityRequests: api.EntityCreationStatus[] = [];
+
+        if (request.name !== undefined) {
+            try {
+                const org: api.Organization = await this.orgSvc.findOrganization(request.name);
+                const filePrefix: string = org.domainName.replace('.com', '');
+
+                request.url = new URL(org.sensorThingsAPI);
+                request.files = [
+                    './assets/development/data/sensor-things/common-data.yml',
+                    `./assets/development/data/sensor-things/${filePrefix}-data.yml`,
+                    `./assets/development/data/sensor-things/${filePrefix}-dynamic-data.yml`
+                ];
+            }
+            catch (error) {
+                throw new ThingBookHttpError(StatusCodes.BAD_REQUEST, `Unable to locate organization by name: ${request.name}`);
+            }
+        }
+
         if (request.files) {
-            const fileEntities = factory.fromYamlFile(...request.files);
-            entityRequests.push(...fileEntities);
+            try {
+                const fileEntities = factory.fromYamlFile(...request.files);
+                entityRequests.push(...fileEntities);
+            }
+            catch (error) {
+                throw new ThingBookHttpError(StatusCodes.BAD_REQUEST, `Unable to read one or more files from the given list: ${JSON.stringify(request.files)}`);
+            }
         }
 
         // TODO
@@ -47,7 +75,7 @@ export class DataLoaderService extends AbstractService {
             created: 0,
             existing: 0,
             failed: 0,
-            retries: 5,
+            retries: 5 * 60, // Allow up to 5 minutes
         });
 
         entityRequests.map((r) => {
@@ -76,9 +104,9 @@ export class DataLoaderService extends AbstractService {
 
             let promises: Promise<api.EntityCreationStatus>[] = [];
 
-            const entity = new SensorThingsEntityFactory(request.url);
+            const factory = new SensorThingsEntityFactory(request.url);
             for (let r of request.entities) {
-                promises.push(entity.create(r))
+                promises.push(factory.create(r))
             }
 
             request.created = 0;
@@ -103,7 +131,7 @@ export class DataLoaderService extends AbstractService {
 
                     request.retries--;
 
-                    this.logger.silly(`DataLoadRequest ${job.attrs.data?.dataLoadRequest}: Created ${request.created}, Existing: ${request.existing}`);
+                    this.logger.silly(`DataLoadRequest ${request._id} - Out of ${request.entities.length} entities: Created ${request.created}, Existing: ${request.existing} (retries: ${request.retries} left)`);
 
                     request.state = (request.created! + request.existing! == request.entities.length) ?
                         api.DataLoadRequestState.COMPLETE :
@@ -114,16 +142,19 @@ export class DataLoaderService extends AbstractService {
 
                     switch (request.state) {
                         case api.DataLoadRequestState.COMPLETE:
-                            this.logger.debug(`DataLoadRequest ${job.attrs.data?.dataLoadRequest} completed`);
+                            this.logger.debug(`DataLoadRequest ${request._id} completed`);
                             await job.remove();
                             break;
                         case api.DataLoadRequestState.IN_PROGRESS:
-                            this.logger.debug(`DataLoadRequest ${job.attrs.data?.dataLoadRequest} will execute again in 30s`);
-                            job.repeatAt('in 30 seconds');
-                            await job.save();
+                            setTimeout(() => {
+                                this.agenda?.now(
+                                    'sensor-things-data-load-job', {
+                                    dataLoadRequest: request._id,
+                                })
+                            }, 1000);
                             break;
                         case api.DataLoadRequestState.FAILED:
-                            this.logger.warn(`DataLoadRequest ${job.attrs.data?.dataLoadRequest} failed`);
+                            this.logger.warn(`DataLoadRequest ${request._id} failed`);
                             await job.remove();
                             break;
                         default:

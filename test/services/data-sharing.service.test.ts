@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { DependencyInjection } from "../../src/dependency-injection";
 import { DataSharingFragmentDocument, DataSharingTemplateDocument } from "../../src/models/data-sharing.model";
-import { PaginationOptions } from 'thingbook-api';
+import { PaginatedResults, PaginationOptions } from 'thingbook-api';
 import { DataSharingService } from "../../src/services/data-sharing.service";
 import { ThingFaker } from "../thing.faker";
 
@@ -52,9 +52,9 @@ describe('DataSharingService', function () {
             await ThingFaker.createDataSharingTemplateEntity();
         }
 
-        const actual: DataSharingTemplateDocument[] = await uut.listDataSharingTemplates(new PaginationOptions({ page_size: 1000 }));
+        const actual: PaginatedResults<DataSharingTemplateDocument> = await uut.listDataSharingTemplates(new PaginationOptions({ page_size: 1000 }));
 
-        expect(actual.length).equal(numTestItems);
+        expect(actual.items.length).equal(numTestItems);
 
     });
 

@@ -217,9 +217,9 @@ class OrgDataSharingAgreement(_ThingBookEntity):
     def __init__(self, data={}):
         super().__init__('organization/{o}/agreement', data, yaml_key='org-agreement', refresh=False)
         try:
-            self.data['producer'] = _ENTITY_REPOSITORY.getOrganization(self.data['producer']).id()
-            self.data['consumer'] = _ENTITY_REPOSITORY.getOrganization(self.data['consumer']).id()
-            self.data['template'] = _ENTITY_REPOSITORY.getOrganizationDataSharingTemplate(self.data['template']).id()
+            self.data['producer']  = _ENTITY_REPOSITORY.getOrganization(self.data['producer']).id()
+            self.data['consumers'] = [ _ENTITY_REPOSITORY.getOrganization(c).id() for c in self.data['consumers'] ]
+            self.data['template']  = _ENTITY_REPOSITORY.getOrganizationDataSharingTemplate(self.data['template']).id()
             self.resource = self.resource.format(o = self.data['producer'])
 
             if not self.refresh():

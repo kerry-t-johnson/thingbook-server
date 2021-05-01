@@ -8,6 +8,18 @@ Shenandoah Grill:
         location:
           type: Point
           coordinates: [-76.47234990360394, 37.086454284356506]
+  FeaturesOfInterest:
+    - name: Shenandoah Feature
+      description: Shenandoah test feature of interest
+      encodingType: application/vnd.geo+json
+      feature:
+        type: Polygon
+        coordinates:
+          - - [-76.47202803855727, 37.08687365836135]
+            - [-76.47284343000885, 37.086437167000895]
+            - [-76.47293998952286, 37.08723311994723]
+            - [-76.47207095389683, 37.087541228521076]
+            - [-76.47202803855727, 37.08687365836135]
     Sensors:
       - name: Shenandoah-MotionDetector-001
         description: Motion Detector
@@ -24,12 +36,4 @@ Shenandoah Grill:
         Sensor: Shenandoah-MotionDetector-001
         ObservedProperty: MotionDetection
         Thing: North Wall Thing 1
-        # observedArea:
-        #   type: Polygon
-        #   coordinates:
-        #     - - [-76.47241427661328, 37.08654842974324]
-        #       - [-76.47321893922998, 37.08649707772861]
-        #       - [-76.47296144719263, 37.087147534009965]
-        #       - [-76.4719958520526, 37.08701059630936]
-        #       - [-76.47241427661328, 37.08654842974324]
               

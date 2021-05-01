@@ -106,7 +106,6 @@ export class UserRoutes extends AbstractRoute {
 
         const options: PaginationOptions = this.getListOptions(req);
         const users = await this.userSvc?.listUsers(options);
-        console.log(users);
         return users;
     }
 

@@ -61,6 +61,29 @@ roleRef:
 
 ---
 # ============================================================================
+# Service: thingbook-redis
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: thingbook-redis
+  namespace: thingbook
+  labels:
+    name: thingbook-redis
+    tier: data
+spec:
+  clusterIP: None
+  ports:
+    - port: 6379
+      targetPort: 6379
+  selector:
+    role: thingbook-redis
+
+
+---
+# ============================================================================
 # Service: thingbook-ui
 # ----------------------------------------------------------------------------
 # A Service provides a "permanent" abstraction to ephemeral Pod resources.
@@ -107,8 +130,8 @@ metadata:
 spec:
   type: ClusterIP
   ports:
-    - port: 80
-      targetPort: 80
+    - port: 3000
+      targetPort: 3000
   selector:
     role: thingbook-api
 
@@ -125,9 +148,10 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: thingbook-ingress
+  namespace: thingbook
 spec:
   rules:
-    - host: adfc542ccafc143b38687e4a1965b73b-99be5dfff8bc3443.elb.us-west-2.amazonaws.com
+    - host: www.thingbroker.org
       http:
         paths:
           # This entry directs all /api/* traffic to the ThingBook REST API
@@ -136,7 +160,7 @@ spec:
               service:
                 name: thingbook-api
                 port:
-                  number: 80
+                  number: 3000
             path: /api
             pathType: Prefix
           # This entry directs all / traffic to the ThingBook User Interface
@@ -148,6 +172,13 @@ spec:
                   number: 80
             path: /
             pathType: Exact
+          - backend:
+              service:
+                name: thingbook-ui
+                port:
+                  number: 80
+            path: /static
+            pathType: Prefix
 
 
 ---
@@ -222,6 +253,40 @@ spec:
             - name: DATABASE_URL
               value: mongodb://mongo-replica-0.mongo,mongo-replica-1.mongo,mongo-replica-2.mongo/thingbook?replicaSet=rs0
           ports:
-            - containerPort: 80
+            - containerPort: 3000
               name: thingbook-api
+              protocol: TCP
+
+
+---
+# ============================================================================
+# Deployment: thingbook-redis
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thingbook-redis
+  namespace: thingbook
+  labels:
+    k8s-app: thingbook-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: thingbook-redis
+  template:
+    metadata:
+      labels:
+        role: thingbook-redis
+    spec:
+      containers:
+        - name: thingbook-redis
+          image: redis:6.2-buster
+          ports:
+            - containerPort: 6379
+              name: thingbook-redis
               protocol: TCP

@@ -21,4 +21,8 @@ export interface OrganizationManager {
     createAgreement: (
         org: OrganizationDocument,
         agreement: OrganizationDataSharingAgreementDocument) => Promise<OrganizationDataSharingAgreementDocument>;
+
+    addConsumerToAgreement: (
+        agreement: OrganizationDataSharingAgreementDocument,
+        consumer: OrganizationDocument) => Promise<OrganizationDataSharingAgreementDocument>;
 }

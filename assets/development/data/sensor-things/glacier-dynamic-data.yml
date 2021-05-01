@@ -1,0 +1,28 @@
+Observations:
+  - Datastream: Temperature 001
+    FeatureOfInterest: Glacier Feature
+    sensor-things-dynamic:
+      phenomenonTime: CURRENT_TIME
+      result: RANDOM_WORDS
+      resultTime: CURRENT_TIME
+    sensor-things-repeat:
+      interval: 3
+      quantity: 1
+  - Datastream: Atmospheric Pressure 001
+    FeatureOfInterest: Glacier Feature
+    sensor-things-dynamic:
+      phenomenonTime: CURRENT_TIME
+      result: RANDOM_VEHICLE
+      resultTime: CURRENT_TIME
+    sensor-things-repeat:
+      interval: 5
+      quantity: 1
+  - Datastream: Temperature 002
+    FeatureOfInterest: Glacier Feature
+    sensor-things-dynamic:
+      phenomenonTime: CURRENT_TIME
+      result: RANDOM_VEHICLE
+      resultTime: CURRENT_TIME
+    sensor-things-repeat:
+      interval: 2
+      quantity: 1

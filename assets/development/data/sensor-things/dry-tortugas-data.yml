@@ -1,0 +1,62 @@
+Dry Tortugas:
+  Locations:
+    - name: Dry Tortugas Location
+      description: Dry Tortugas Location
+      type: Feature
+      encodingType: application/vnd.geo+json
+      location:
+        type: Point
+        coordinates: [-76.47234990360394, 37.086454284356506]
+  FeaturesOfInterest:
+    - name: Dry Tortugas Feature
+      description: Dry Tortugas test feature of interest
+      encodingType: application/vnd.geo+json
+      feature:
+        type: Polygon
+        coordinates:
+          - - [-76.47202803855727, 37.08687365836135]
+            - [-76.47284343000885, 37.086437167000895]
+            - [-76.47293998952286, 37.08723311994723]
+            - [-76.47207095389683, 37.087541228521076]
+            - [-76.47202803855727, 37.08687365836135]
+  Sensors:
+    - name: Dry-Tortugas-Temperature-001
+      description: Temperature Sensor
+      encodingType: application/pdf
+      metadata: https://www.security.honeywell.com/-/media/Security/Resources/Product-Documents/HCI-COMMINTRSN-01-NA-0919-QRG-E-pdf.pdf
+    - name: Dry-Tortugas-Temperature-002
+      description: Temperature Sensor
+      encodingType: application/pdf
+      metadata: https://example.com/fake-document.pdf
+    - name: Dry-Tortugas-Barometer-001
+      description: Atmospheric Pressure Sensor
+      encodingType: application/pdf
+      metadata: https://example.com/fake-document.pdf
+  Things:
+    - name: Thing 1
+      description: Thing 1
+    - name: Thing 2
+      description: Thing 2
+  Datastreams:
+    - name: Temperature 001
+      description: Temperature at location 1
+      unitOfMeasurement: null
+      observationType: "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation"
+      Sensor: Dry-Tortugas-Temperature-001
+      ObservedProperty: Temperature
+      Thing: Thing 1
+    - name: Atmospheric Pressure 001
+      description: Atmospheric pressure at location 1
+      unitOfMeasurement: null
+      observationType: "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation"
+      Sensor: Dry-Tortugas-Barometer-001
+      ObservedProperty: AtmosphericPressure
+      Thing: Thing 1
+    - name: Temperature 002
+      description: Temperature at location 2
+      unitOfMeasurement: null
+      observationType: "http://www.opengis.net/def/observationType/OGC-OM/2.0/OM_Observation"
+      Sensor: Dry-Tortugas-Temperature-002
+      ObservedProperty: Temperature
+      Thing: Thing 2
+            

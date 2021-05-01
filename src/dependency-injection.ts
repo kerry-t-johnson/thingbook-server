@@ -39,7 +39,10 @@ export class DependencyInjection {
                 options: {
                     useUnifiedTopology: true
                 }
-            }
+            },
+            processEvery: '1 second',
+            defaultConcurrency: 50,
+            maxConcurrency: 100,
         });
         await DependencyInjection.agenda.start();
 
@@ -53,7 +56,7 @@ export class DependencyInjection {
         container.register("SocketService", { useValue: DependencyInjection.io });
 
         // Dependency Injection - Organization (Service, Manager)
-        container.register("OrganizationService", { useClass: OrganizationServiceImpl });
+        container.register("OrganizationService", { useValue: new OrganizationServiceImpl() });
         container.register("OrganizationManager", { useFactory: instanceCachingFactory<OrganizationManager>((c) => c.resolve(OrganizationManagerImpl)) });
 
         // Dependency Injection - User (Model, Service)
