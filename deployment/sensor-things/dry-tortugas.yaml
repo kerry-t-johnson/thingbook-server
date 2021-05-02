@@ -1,0 +1,202 @@
+---
+# ============================================================================
+# Namespace: dry-tortugas
+# ----------------------------------------------------------------------------
+# A namespace is a logical organization of resources within a single
+# Kubernetes cluster.
+#
+# By using namespaces, a cluster admin may retain control of all cluster
+# resources while granting limited administration capabilities within a
+# namespace.
+# ============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dry-tortugas
+  labels:
+    app: sensor-things
+
+
+
+---
+# ============================================================================
+# Service: sensor-things
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# This Service type is "ClusterIP" which allocates a cluster-internal IP
+# address for load-balancing to endpoints. Endpoints are determined by the
+# selector...
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensor-things
+  namespace: dry-tortugas
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-rest
+      port: 8080
+    - name: mqtt
+      port: 1883
+  selector:
+    role: sensor-things
+
+
+---
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mqtt-pv-claim
+  namespace: dry-tortugas
+  labels:
+    app: sensor-things
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+---
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pv-claim
+  namespace: dry-tortugas
+  labels:
+    app: sensor-things
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+---
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gost-pv-claim
+  namespace: dry-tortugas
+  labels:
+    app: sensor-things
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
+
+
+
+---
+# ============================================================================
+# Deployment: dry-tortugas
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+#
+# This deployment instantiates a container which serves the ReactJS User
+# Interface
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-things-dry-tortugas
+  namespace: dry-tortugas
+  labels:
+    k8s-app: sensor-things
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: sensor-things
+  template:
+    metadata:
+      labels:
+        role: sensor-things
+    spec:
+      containers:
+      - name: gost
+        image: geodan/gost
+        ports:
+        - containerPort: 8080
+          name: http-rest
+          protocol: TCP
+        env:
+        - name: GOST_SERVER_NAME
+          value: dry-tortugas
+        - name: GOST_SERVER_EXTERNAL_URI
+          value: http://dry-tortugas.thingbroker.org
+        volumeMounts:
+        - name: gost-persistent-storage
+          mountPath: /gostserver/config
+      - name: mqtt
+        image: agmangas/mosquitto-websockets
+        ports:
+        - containerPort: 1883
+          name: mqtt
+          protocol: TCP
+        volumeMounts:
+        - name: mqtt-persistent-storage
+          mountPath: /mosquitto/data
+      - name: gost-db
+        image: geodan/gost-db
+        volumeMounts:
+        - name: db-persistent-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+        env:
+        - name: POSTGRES_DB
+          value: gost
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+      volumes:
+      - name: gost-persistent-storage
+        persistentVolumeClaim:
+          claimName: gost-pv-claim
+      - name: mqtt-persistent-storage
+        persistentVolumeClaim:
+          claimName: mqtt-pv-claim
+      - name: db-persistent-storage
+        persistentVolumeClaim:
+          claimName: db-pv-claim
+        
+
+---
+# ============================================================================
+# Ingress: http
+# ----------------------------------------------------------------------------
+# Ingress is a collection of rules that allow inbound connections to reach the
+# endpoints defined by a backend. An Ingress can be configured to give
+# services externally-reachable URLs.
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: http
+  namespace: dry-tortugas
+spec:
+  rules:
+    - host: dry-tortugas.thingbroker.org
+      http:
+        paths:
+          # This entry directs all traffic to the dry-tortugas HTTP service
+          - path: /v1.0
+            pathType: Prefix
+            backend:
+              service:
+                name: sensor-things
+                port:
+                  name: http-rest
+                  
