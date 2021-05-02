@@ -136,7 +136,7 @@ export class OrganizationServiceImpl extends AbstractService implements Organiza
 
             this.logger.info("Created Organization DataSharingTemplate: %s", template.name || template.template.name);
 
-            return await OrganizationDataSharingTemplate.findOne({ org: template.org, template: template.template })
+            return await OrganizationDataSharingTemplate.findOne({ name: template.name, org: template.org })
                 .populate('org', '-verification')
                 .populate('template')
                 .session(session)

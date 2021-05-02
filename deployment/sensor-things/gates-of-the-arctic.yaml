@@ -1,0 +1,202 @@
+---
+# ============================================================================
+# Namespace: gates-of-the-arctic
+# ----------------------------------------------------------------------------
+# A namespace is a logical organization of resources within a single
+# Kubernetes cluster.
+#
+# By using namespaces, a cluster admin may retain control of all cluster
+# resources while granting limited administration capabilities within a
+# namespace.
+# ============================================================================
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: gates-of-the-arctic
+  labels:
+    app: sensor-things
+
+
+
+---
+# ============================================================================
+# Service: sensor-things
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# This Service type is "ClusterIP" which allocates a cluster-internal IP
+# address for load-balancing to endpoints. Endpoints are determined by the
+# selector...
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: sensor-things
+  namespace: gates-of-the-arctic
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-rest
+      port: 8080
+    - name: mqtt
+      port: 1883
+  selector:
+    role: sensor-things
+
+
+---
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mqtt-pv-claim
+  namespace: gates-of-the-arctic
+  labels:
+    app: sensor-things
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+---
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: db-pv-claim
+  namespace: gates-of-the-arctic
+  labels:
+    app: sensor-things
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+
+---
+# ============================================================================
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: gost-pv-claim
+  namespace: gates-of-the-arctic
+  labels:
+    app: sensor-things
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Mi
+
+
+
+---
+# ============================================================================
+# Deployment: gates-of-the-arctic
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+#
+# This deployment instantiates a container which serves the ReactJS User
+# Interface
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sensor-things-gates-of-the-arctic
+  namespace: gates-of-the-arctic
+  labels:
+    k8s-app: sensor-things
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: sensor-things
+  template:
+    metadata:
+      labels:
+        role: sensor-things
+    spec:
+      containers:
+      - name: gost
+        image: geodan/gost
+        ports:
+        - containerPort: 8080
+          name: http-rest
+          protocol: TCP
+        env:
+        - name: GOST_SERVER_NAME
+          value: gates-of-the-arctic
+        - name: GOST_SERVER_EXTERNAL_URI
+          value: http://gates-of-the-arctic.thingbroker.org
+        volumeMounts:
+        - name: gost-persistent-storage
+          mountPath: /gostserver/config
+      - name: mqtt
+        image: agmangas/mosquitto-websockets
+        ports:
+        - containerPort: 1883
+          name: mqtt
+          protocol: TCP
+        volumeMounts:
+        - name: mqtt-persistent-storage
+          mountPath: /mosquitto/data
+      - name: gost-db
+        image: geodan/gost-db
+        volumeMounts:
+        - name: db-persistent-storage
+          mountPath: /var/lib/postgresql/data
+          subPath: postgres
+        env:
+        - name: POSTGRES_DB
+          value: gost
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: postgres
+      volumes:
+      - name: gost-persistent-storage
+        persistentVolumeClaim:
+          claimName: gost-pv-claim
+      - name: mqtt-persistent-storage
+        persistentVolumeClaim:
+          claimName: mqtt-pv-claim
+      - name: db-persistent-storage
+        persistentVolumeClaim:
+          claimName: db-pv-claim
+        
+
+---
+# ============================================================================
+# Ingress: http
+# ----------------------------------------------------------------------------
+# Ingress is a collection of rules that allow inbound connections to reach the
+# endpoints defined by a backend. An Ingress can be configured to give
+# services externally-reachable URLs.
+# ============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: http
+  namespace: gates-of-the-arctic
+spec:
+  rules:
+    - host: gates-of-the-arctic.thingbroker.org
+      http:
+        paths:
+          # This entry directs all traffic to the gates-of-the-arctic HTTP service
+          - path: /v1.0
+            pathType: Prefix
+            backend:
+              service:
+                name: sensor-things
+                port:
+                  name: http-rest
+                  

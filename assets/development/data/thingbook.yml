@@ -21,72 +21,72 @@ thingbook:
 
     - name: Death Valley
       domainName: death-valley.com
-      sensorThingsAPI: http://death-valley:8080/v1.0
-      sensorThingsMQTT: mqtt://death-valley:1883
+      sensorThingsAPI: http://sensor-things.death-valley:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.death-valley:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
 
     - name: Denali
       domainName: denali.com
-      sensorThingsAPI: http://denali:8080/v1.0
-      sensorThingsMQTT: mqtt://denali-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.denali:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.denali:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
 
     - name: Dry Tortugas
       domainName: dry-tortugas.com
-      sensorThingsAPI: http://dry-tortugas:8080/v1.0
-      sensorThingsMQTT: mqtt://dry-tortugas-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.dry-tortugas:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.dry-tortugas:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
 
     - name: Gates of the Arctic
       domainName: gates-of-the-arctic.com
-      sensorThingsAPI: http://gates-of-the-arctic:8080/v1.0
-      sensorThingsMQTT: mqtt://gates-of-the-arctic-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.gates-of-the-arctic:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.gates-of-the-arctic:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
 
     - name: Glacier
       domainName: glacier.com
-      sensorThingsAPI: http://glacier:8080/v1.0
-      sensorThingsMQTT: mqtt://glacier-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.glacier:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.glacier:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
 
     - name: Haleakala
       domainName: haleakala.com
-      sensorThingsAPI: http://haleakala:8080/v1.0
-      sensorThingsMQTT: mqtt://haleakala-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.haleakala:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.haleakala:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
     
     - name: Mammoth Cave
       domainName: mammothcave.com
-      sensorThingsAPI: http://mammoth-cave:8080/v1.0
-      sensorThingsMQTT: mqtt://mammoth-cave-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.mammoth-cave:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.mammoth-cave:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
     
     - name: Mesa Verde International
       domainName: mesaverde.com
-      sensorThingsAPI: http://mesaverde:8080/v1.0
-      sensorThingsMQTT: mqtt://mesaverde-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.mesaverde:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.mesaverde:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
 
     - name: Shenandoah Inc.
       domainName: shenandoah.com
-      sensorThingsAPI: http://shenandoah:8080/v1.0
-      sensorThingsMQTT: mqtt://shenandoah-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.shenandoah:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.shenandoah:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
@@ -102,7 +102,7 @@ thingbook:
         - Datastreams(1)
         - Datastreams(3)
 
-    - name: Arches Public Temperature and Atmospheric Pressure Datastreams
+    - name: Arches Combined Temperature and Atmospheric Pressure Datastreams
       org: Arches
       template: Generic Publishing Agreement - No Sharing
       auto: true
