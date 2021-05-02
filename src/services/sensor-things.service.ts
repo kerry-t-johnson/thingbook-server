@@ -116,7 +116,7 @@ export class SensorThingsMQTT {
             this.preInitialize();
         }
         else {
-            this.initializeMqtt([this.url.host]);
+            this.initializeMqtt([this.url.hostname]);
         }
     }
 
