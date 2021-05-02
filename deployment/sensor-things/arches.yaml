@@ -39,7 +39,7 @@ spec:
     - name: http-rest
       port: 8080
     - name: mqtt
-      port: 1833
+      port: 1883
   selector:
     role: sensor-things
 
@@ -142,7 +142,7 @@ spec:
       - name: mqtt
         image: agmangas/mosquitto-websockets
         ports:
-        - containerPort: 1833
+        - containerPort: 1883
           name: mqtt
           protocol: TCP
         volumeMounts:

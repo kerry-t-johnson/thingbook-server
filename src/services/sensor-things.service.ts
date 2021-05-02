@@ -112,7 +112,12 @@ export class SensorThingsMQTT {
     private constructor(url: string) {
         this.url = new URL(url);
 
-        this.preInitialize();
+        if (process.env.NODE_ENV === 'development') {
+            this.preInitialize();
+        }
+        else {
+            this.initializeMqtt([this.url.host]);
+        }
     }
 
     private preInitialize() {
@@ -130,7 +135,7 @@ export class SensorThingsMQTT {
         }
     }
 
-    private initializeMqtt(addresses: []) {
+    private initializeMqtt(addresses: string[]) {
         this.mqtt = MqttConnect({
             clientId: 'ThingBook',
             keepalive: 10000,

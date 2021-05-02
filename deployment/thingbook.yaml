@@ -138,6 +138,32 @@ spec:
 
 ---
 # ============================================================================
+# Service: thingbook-mqtt
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# This Service type is "ClusterIP" which allocates a cluster-internal IP
+# address for load-balancing to endpoints. Endpoints are determined by the
+# selector...
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: thingbook-mqtt
+  namespace: thingbook
+  labels:
+    name: thingbook-mqtt
+spec:
+  type: ClusterIP
+  ports:
+    - name: mqtt
+      port: 1883
+  selector:
+    role: thingbook-mqtt
+
+
+---
+# ============================================================================
 # Ingress: thingbook-ingress
 # ----------------------------------------------------------------------------
 # Ingress is a collection of rules that allow inbound connections to reach the
@@ -156,30 +182,39 @@ spec:
         paths:
           # This entry directs all /api/* traffic to the ThingBook REST API
           # service
-          - backend:
+          - path: /api
+            pathType: Prefix
+            backend:
               service:
                 name: thingbook-api
                 port:
                   number: 3000
-            path: /api
+          # This entry directs all /socket.io/* traffic (Websocket requests) to
+          # the ThingBook REST API service
+          - path: /socket.io
             pathType: Prefix
-          # This entry directs all / traffic to the ThingBook User Interface
+            backend:
+              service:
+                name: thingbook-api
+                port:
+                  number: 3000
+                      # This entry directs all / traffic to the ThingBook User Interface
           # service
-          - backend:
-              service:
-                name: thingbook-ui
-                port:
-                  number: 80
-            path: /
+          - path: /
             pathType: Exact
-          - backend:
+            backend:
               service:
                 name: thingbook-ui
                 port:
                   number: 80
-            path: /static
+          - path: /static
             pathType: Prefix
-
+            backend:
+              service:
+                name: thingbook-ui
+                port:
+                  number: 80
+            
 
 ---
 # ============================================================================
@@ -255,8 +290,8 @@ spec:
             - name: DATABASE_URL
               value: mongodb://mongo-replica-0.mongo,mongo-replica-1.mongo,mongo-replica-2.mongo/thingbook?replicaSet=rs0
           ports:
-            - containerPort: 3000
-              name: thingbook-api
+            - name: thingbook-api
+              containerPort: 3000
               protocol: TCP
 
 
@@ -292,3 +327,132 @@ spec:
             - containerPort: 6379
               name: thingbook-redis
               protocol: TCP
+
+
+---
+# ============================================================================
+# Deployment: thingbook-mqtt
+# ----------------------------------------------------------------------------
+# A Deployment creates Pods within a Cluster and may specify a preferred
+# replication count.  Unlike StatefulSets, a Deployment has no guarantees
+# regarding startup order or Pod names.
+# ============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thingbook-mqtt
+  namespace: thingbook
+  labels:
+    k8s-app: thingbook-mqtt
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      role: thingbook-mqtt
+  template:
+    metadata:
+      labels:
+        role: thingbook-mqtt
+    spec:
+      containers:
+        - name: thingbook-mqtt
+          image: hivemq/hivemq-ce
+          ports:
+            - name: mqtt
+              containerPort: 1883
+              protocol: TCP
+
+
+
+---
+# ============================================================================
+# Service: mongo
+# ----------------------------------------------------------------------------
+# A Service provides a "permanent" abstraction to ephemeral Pod resources.
+#
+# The mongo Service below is "headless" in that it cannot be accessed outside
+# of the Kubernetes cluster, providing a reduced attach vector.
+# ============================================================================
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo
+  namespace: thingbook
+  labels:
+    name: mongo
+    tier: data
+spec:
+  ports:
+    - port: 27017
+      targetPort: 27017
+  clusterIP: None
+  selector:
+    role: mongo
+
+
+---
+# ============================================================================
+# StatefulSet: mongo
+# ----------------------------------------------------------------------------
+# A StatefulSet manages a deployment of Pods and provides guarantees about
+# the ordering and uniqueness of the Pods.  For example, the Pods are named
+# 0, 1, ... n-1 and will be brought up in that order.
+#
+# NOTE: We cannot use a Kubernetes ReplicaSet because in Kubernetes, replicas
+#       cannot be reliably distinguished from each other.
+# ============================================================================
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: mongo-replica
+  namespace: thingbook
+  labels:
+    tier: data
+# --- StatefulSet specification
+spec:
+  selector:
+    matchLabels:
+      role: mongo
+  serviceName: mongo
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        role: mongo
+    # --- Pod specification (template)
+    spec:
+      terminationGracePeriodSeconds: 10
+      serviceAccount: thingbook-svc
+      containers:
+        - name: mongo
+          image: mongo:4.4.3-bionic
+          args: 
+            - "--replSet=rs0"
+            - "--bind_ip=0.0.0.0"
+          ports:
+            - containerPort: 27017
+          volumeMounts:
+            - name: mongo-pv
+              mountPath: /data/db
+        - name: mongo-sidecar
+          image: cvallance/mongo-k8s-sidecar
+          env:
+            - name: KUBE_NAMESPACE
+              value: thingbook
+            - name: MONGO_SIDECAR_POD_LABELS
+              value: "role=mongo"
+            - name: KUBERNETES_MONGO_SERVICE_NAME
+              value: mongo
+            - name: MONGODB_DATABASE
+              value: thingbook
+  volumeClaimTemplates:
+    - metadata:
+        name: mongo-pv
+      spec:
+        storageClassName: gp2
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 20Gi
+

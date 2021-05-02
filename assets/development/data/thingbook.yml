@@ -13,8 +13,8 @@ thingbook:
   organization:
     - name: Arches
       domainName: arches.com
-      sensorThingsAPI: http://arches:8080/v1.0
-      sensorThingsMQTT: mqtt://arches-mosquitto:1883
+      sensorThingsAPI: http://sensor-things.arches:8080/v1.0
+      sensorThingsMQTT: mqtt://sensor-things.arches:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
@@ -22,7 +22,7 @@ thingbook:
     - name: Death Valley
       domainName: death-valley.com
       sensorThingsAPI: http://death-valley:8080/v1.0
-      sensorThingsMQTT: mqtt://death-valley-mosquitto:1883
+      sensorThingsMQTT: mqtt://death-valley:1883
       user: kerry.t.johnson@gmail.com
       verification:
         method: HTML_META_TAG
