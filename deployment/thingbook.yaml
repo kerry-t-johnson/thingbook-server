@@ -212,6 +212,7 @@ spec:
       containers:
       - name: thingbook-ui
         image: kerrytjohnson/thingbook-react-ui:master
+        imagePullPolicy: Always
         ports:
         - containerPort: 80
           name: thingbook-ui
@@ -249,6 +250,7 @@ spec:
       containers:
         - name: thingbook-server
           image: kerrytjohnson/thingbook-server:master
+          imagePullPolicy: Always
           env:
             - name: DATABASE_URL
               value: mongodb://mongo-replica-0.mongo,mongo-replica-1.mongo,mongo-replica-2.mongo/thingbook?replicaSet=rs0
