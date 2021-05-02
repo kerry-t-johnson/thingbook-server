@@ -24,5 +24,7 @@ WORKDIR /opt/thingbook-server
 COPY ["package*.json", "npm-shrinkwrap.json*", "./"]
 RUN npm install --production --silent
 
-COPY --from=builder /opt/thingbook-server/dist .
+COPY --from=builder /opt/thingbook-server/dist  .
+COPY                assets                      ./assets/
+COPY                scripts                     ./scripts/
 CMD ["node", "./src/server.js"]
